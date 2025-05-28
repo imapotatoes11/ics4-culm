@@ -12,101 +12,176 @@
  *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * distributed under the license is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * license for the specific language governing permissions and limitations under
+ * the license.
  */
 package net.imapotatoes11.arcade.games.pokeman;
 
-import java.util.*;
 import net.imapotatoes11.arcade.util.Bcolors;
+import java.util.ArrayList;
 
 public class Pokeman {
     private String name;
-    private int maxLife;
-    private int currentLife;
+    private int maxHp;
+    private int currentHp;
     private int maxEnergy;
     private int currentEnergy;
-    private List<Move> movePool;
-    private Random random;
+    private ArrayList<Move> moves;
+    private boolean isBoss;
 
-    public Pokeman(String name, int maxLife, int maxEnergy, List<Move> movePool) {
+    public Pokeman(String name, int maxHp, int maxEnergy, ArrayList<Move> moves, boolean isBoss) {
         this.name = name;
-        this.maxLife = maxLife;
-        this.currentLife = maxLife;
+        this.maxHp = maxHp;
+        this.currentHp = maxHp;
         this.maxEnergy = maxEnergy;
         this.currentEnergy = maxEnergy;
-        this.movePool = new ArrayList<>(movePool);
-        this.random = new Random();
+        this.moves = new ArrayList<>(moves);
+        this.isBoss = isBoss;
     }
 
-    public void regenEnergy() {
+    public void takeDamage(int damage) {
+        currentHp = Math.max(0, currentHp - damage);
+    }
+
+    public boolean useMove(Move move, Pokeman target) {
+        if (!move.canAfford(currentEnergy)) {
+            System.out.println(Bcolors.FAIL + name + " doesn't have enough energy!" + Bcolors.ENDC);
+            return false;
+        }
+
+        // Consume energy
+        consumeEnergy(move.getEnergyCost());
+
+        // Calculate damage
+        int damage = move.calculateDamage();
+
+        // Apply damage
+        target.takeDamage(damage);
+
+        // Display result
+        System.out.println(Bcolors.BOLD + name + Bcolors.ENDC + " used " +
+                Bcolors.BRIGHT_YELLOW + move.getName() + Bcolors.ENDC + "!");
+        System.out.println(Bcolors.FAIL + target.getName() + " takes " + damage + " damage!" + Bcolors.ENDC);
+
+        return true;
+    }
+
+    public void regenerateEnergy() {
         if (currentEnergy < maxEnergy) {
             currentEnergy++;
         }
     }
 
-    public int takeDamage(int amount) {
-        int actual = Math.min(amount, currentLife);
-        currentLife -= actual;
-        return actual;
+    public void consumeEnergy(int amount) {
+        currentEnergy = Math.max(0, currentEnergy - amount);
     }
 
     public boolean isDefeated() {
-        return currentLife <= 0;
+        return currentHp <= 0;
     }
 
-    public Move chooseMove() {
-        List<Move> affordable = new ArrayList<>();
-        for (Move m : movePool) {
-            if (m.getEnergyCost() <= currentEnergy) {
-                affordable.add(m);
+    public ArrayList<Move> getAvailableMoves() {
+        ArrayList<Move> available = new ArrayList<>();
+        for (Move move : moves) {
+            if (move.canAfford(currentEnergy)) {
+                available.add(move);
             }
         }
-        if (affordable.isEmpty()) {
-            // pick lowest cost
-            Move lowest = movePool.get(0);
-            for (Move m : movePool) {
-                if (m.getEnergyCost() < lowest.getEnergyCost()) {
-                    lowest = m;
-                }
-            }
-            return lowest;
+        return available;
+    }
+
+    public void displayStats() {
+        // HP Bar
+        int hpBarLength = 12;
+        int hpFilled = (int) ((double) currentHp / maxHp * hpBarLength);
+        String hpBar = Bcolors.BRIGHT_GREEN + "█".repeat(hpFilled) +
+                Bcolors.BRIGHT_BLACK + "░".repeat(hpBarLength - hpFilled) + Bcolors.ENDC;
+
+        // Energy Bar
+        int energyBarLength = 4;
+        int energyFilled = (int) ((double) currentEnergy / maxEnergy * energyBarLength);
+        String energyBar = Bcolors.BRIGHT_BLUE + "█".repeat(energyFilled) +
+                Bcolors.BRIGHT_BLACK + "░".repeat(energyBarLength - energyFilled) + Bcolors.ENDC;
+
+        System.out.printf("HP: %s %d/%d\n", hpBar, currentHp, maxHp);
+        System.out.printf("EN: %s %d/%d\n", energyBar, currentEnergy, maxEnergy);
+    }
+
+    public String getAsciiArt() {
+        if (isBoss) {
+            return "    ▲ ▲ ▲ ▲ ▲\n" +
+                    "   ( ◉ ◉ ◉ ◉ )\n" +
+                    "    \\   ∩   /\n" +
+                    "     -------\n" +
+                    "    /|  |  |\\\n" +
+                    "   ( |  |  | )";
+        } else {
+            return "    ▲ ▲ ▲ ▲\n" +
+                    "   ( ◉   ◉ )\n" +
+                    "    \\  ∩  /\n" +
+                    "     ----";
         }
-        return affordable.get(random.nextInt(affordable.size()));
     }
 
-    public String displayStatus() {
-        String lifeBar = String.format("HP:%d/%d", currentLife, maxLife);
-        String energyBar = String.format("EN:%d/%d", currentEnergy, maxEnergy);
-        return String.format("%s%s%s | %s%s",
-                Bcolors.BOLD, name, Bcolors.ENDC,
-                lifeBar, energyBar);
+    // Factory methods
+    public static Pokeman createPlayerPokeman() {
+        ArrayList<Move> playerMoves = new ArrayList<>();
+        playerMoves.add(Move.createFireball());
+        playerMoves.add(Move.createSlash());
+        return new Pokeman("Sparkles", 80, 3, playerMoves, false);
     }
 
-    // getters and setters
+    public static Pokeman createEnemyPokeman(int battleNumber) {
+        ArrayList<Move> enemyMoves = new ArrayList<>();
+
+        switch (battleNumber) {
+            case 1:
+                enemyMoves.add(Move.createEnemyAttack());
+                return new Pokeman("Leafy", 40, 2, enemyMoves, false);
+            case 2:
+                enemyMoves.add(Move.createEnemyAttack());
+                return new Pokeman("Rocky", 50, 3, enemyMoves, false);
+            case 3:
+                enemyMoves.add(Move.createEnemyAttack());
+                return new Pokeman("Watery", 60, 3, enemyMoves, false);
+            case 4: // Boss
+                enemyMoves.add(Move.createBossAttack());
+                enemyMoves.add(Move.createEnemyAttack());
+                return new Pokeman("MEGA-DESTROYER", 100, 4, enemyMoves, true);
+            default:
+                enemyMoves.add(Move.createEnemyAttack());
+                return new Pokeman("Unknown", 30, 2, enemyMoves, false);
+        }
+    }
+
+    // Getters
     public String getName() {
         return name;
     }
 
-    public int getCurrentLife() {
-        return currentLife;
+    public int getMaxHp() {
+        return maxHp;
     }
 
-    public int getCurrentEnergy() {
-        return currentEnergy;
+    public int getCurrentHp() {
+        return currentHp;
     }
 
     public int getMaxEnergy() {
         return maxEnergy;
     }
 
-    public void setCurrentEnergy(int currentEnergy) {
-        this.currentEnergy = Math.max(0, Math.min(currentEnergy, maxEnergy));
+    public int getCurrentEnergy() {
+        return currentEnergy;
     }
 
-    public List<Move> getMovePool() {
-        return movePool;
+    public ArrayList<Move> getMoves() {
+        return moves;
+    }
+
+    public boolean isBoss() {
+        return isBoss;
     }
 }
