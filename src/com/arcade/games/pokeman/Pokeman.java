@@ -1,7 +1,7 @@
 /*
  * Pokeman.java
  *
- * Date: 05 28, 2025
+ * Date: 05 30, 2025
  *
  * Copyright 2025 Kevin Wang
  *
@@ -17,10 +17,10 @@
  * license for the specific language governing permissions and limitations under
  * the license.
  */
-package net.imapotatoes11.arcade.games.pokeman;
+package com.arcade.games.pokeman;
 
-import net.imapotatoes11.arcade.util.Bcolors;
-import java.util.ArrayList;
+import java.util.*;
+import com.arcade.util.Bcolors;
 
 public class Pokeman {
     private String name;

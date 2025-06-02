@@ -1,5 +1,5 @@
 /*
- * Functional.java
+ * Item.java
  *
  * Date: 05 27, 2025
  *
@@ -17,36 +17,23 @@
  * license for the specific language governing permissions and limitations under
  * the license.
  */
-package net.imapotatoes11.arcade.item;
+package net.arcade.arcade.item;
 
 import java.io.*;
 import java.util.*;
 
-public abstract class Functional extends Item {
-    private int numUses;
-    private int price;
+public abstract class Item {
+    private String name;
 
-    public abstract void activate();
-
-    public Functional(String name, int numUses, int price) {
-        super(name);
-        this.numUses = numUses;
-        this.price = price;
+    public Item(String name) {
+        this.name = name;
     }
 
-    public int getNumUses() {
-        return numUses;
+    public String getName() {
+        return name;
     }
 
-    public void setNumUses(int numUses) {
-        this.numUses = numUses;
-    }
-
-    public int getPrice() {
-        return price;
-    }
-
-    public void setPrice(int price) {
-        this.price = price;
+    public void setName(String name) {
+        this.name = name;
     }
 }

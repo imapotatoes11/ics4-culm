@@ -1,7 +1,7 @@
 /*
  * BlackJack.java
  *
- * Date: 05 27, 2025
+ * Date: 05 30, 2025
  *
  * Copyright 2025 Kevin Wang
  *
@@ -17,12 +17,12 @@
  * license for the specific language governing permissions and limitations under
  * the license.
  */
-package net.imapotatoes11.arcade.games.blackjack;
+package com.arcade.games.blackjack;
 
-import net.imapotatoes11.arcade.games.Game;
-import net.imapotatoes11.arcade.item.Functional;
-import net.imapotatoes11.arcade.util.Bcolors;
 import java.util.*;
+import com.arcade.item.Functional;
+import com.arcade.util.Bcolors;
+import com.arcade.games.Game;
 
 public class BlackJack extends Game {
     public static final int NUM_CARDS = 52;
@@ -60,7 +60,7 @@ public class BlackJack extends Game {
     }
 
     public static void main(String[] args) {
-        BlackJack game = new BlackJack();
+        BlackJack game = new BlackJack(10, "Blackjack", 10, 10, 20);
         ArrayList<Functional> useItems = new ArrayList<>(); // Placeholder for items
         game.runGame(useItems);
     }

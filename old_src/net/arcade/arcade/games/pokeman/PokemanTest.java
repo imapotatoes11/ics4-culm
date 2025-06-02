@@ -3,7 +3,7 @@
  *
  * Simple test to verify the Pokeman game mechanics work
  */
-package net.imapotatoes11.arcade.games.pokeman;
+package net.arcade.arcade.games.pokeman;
 
 public class PokemanTest {
     public static void main(String[] args) {

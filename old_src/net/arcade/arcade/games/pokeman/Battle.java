@@ -17,12 +17,13 @@
  * license for the specific language governing permissions and limitations under
  * the license.
  */
-package net.imapotatoes11.arcade.games.pokeman;
+package net.arcade.arcade.games.pokeman;
 
-import net.imapotatoes11.arcade.util.Bcolors;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
+
+import net.arcade.arcade.util.Bcolors;
 
 public class Battle {
     private Pokeman player;

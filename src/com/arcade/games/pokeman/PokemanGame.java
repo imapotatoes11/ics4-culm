@@ -1,7 +1,7 @@
 /*
  * PokemanGame.java
  *
- * Date: 05 28, 2025
+ * Date: 05 30, 2025
  *
  * Copyright 2025 Kevin Wang
  *
@@ -17,13 +17,12 @@
  * license for the specific language governing permissions and limitations under
  * the license.
  */
-package net.imapotatoes11.arcade.games.pokeman;
+package com.arcade.games.pokeman;
 
-import net.imapotatoes11.arcade.games.Game;
-import net.imapotatoes11.arcade.item.Functional;
-import net.imapotatoes11.arcade.util.Bcolors;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.*;
+import com.arcade.games.Game;
+import com.arcade.util.Bcolors;
+import com.arcade.item.Functional;
 
 public class PokemanGame extends Game {
     private Pokeman playerPokeman;
@@ -40,7 +39,9 @@ public class PokemanGame extends Game {
     private static final String STYLE_END = Bcolors.ENDC;
 
     public PokemanGame() {
-        super(2, "Pokeman Adventure", 3, 15, 50);
+        // Default constructor with preset values
+        // for testing purposes
+        super(2, "Pokeman Adventure", 10, 15, 50);
         this.scanner = new Scanner(System.in);
     }
 
@@ -50,6 +51,8 @@ public class PokemanGame extends Game {
     }
 
     public static void main(String[] args) {
+        // Main method to run the game
+        // This is just a placeholder for testing purposes
         PokemanGame game = new PokemanGame();
         ArrayList<Functional> useItems = new ArrayList<>(); // Placeholder for items
         game.runGame(useItems);
@@ -93,6 +96,7 @@ public class PokemanGame extends Game {
         System.out.println(STYLE_TITLE + "╔══════════════════════════════════════════════╗");
         System.out.println("║              POKEMAN ADVENTURE              ║");
         System.out.println("╚══════════════════════════════════════════════╝" + STYLE_END);
+        System.out.println(Bcolors.ITALIC + "*Gotta poke 'em all!*" + STYLE_END);
         System.out.println();
         System.out.println(STYLE_INFO + "Welcome, Pokeman Trainer!" + STYLE_END);
         System.out.println(

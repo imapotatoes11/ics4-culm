@@ -17,7 +17,7 @@
  * license for the specific language governing permissions and limitations under
  * the license.
  */
-package net.imapotatoes11.arcade.util;
+package net.arcade.arcade.util;
 
 import java.io.*;
 import java.util.*;

@@ -17,7 +17,7 @@
  * license for the specific language governing permissions and limitations under
  * the license.
  */
-package net.imapotatoes11.arcade.games.pokeman;
+package net.arcade.arcade.games.pokeman;
 
 import java.util.Random;
 

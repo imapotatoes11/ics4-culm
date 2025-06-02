@@ -17,11 +17,12 @@
  * license for the specific language governing permissions and limitations under
  * the license.
  */
-package net.imapotatoes11.arcade.games;
+package net.arcade.arcade.games;
 
-import net.imapotatoes11.arcade.item.Functional;
 import java.io.*;
 import java.util.*;
+
+import net.arcade.arcade.item.Functional;
 
 public abstract class Game {
     private int id;
