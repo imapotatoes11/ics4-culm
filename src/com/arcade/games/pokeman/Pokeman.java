@@ -68,6 +68,29 @@ public class Pokeman {
         return true;
     }
 
+    public boolean useMove(Move move, Pokeman target, int difficulty) {
+        if (!move.canAfford(currentEnergy)) {
+            System.out.println(Bcolors.FAIL + name + " doesn't have enough energy!" + Bcolors.ENDC);
+            return false;
+        }
+
+        // Consume energy
+        consumeEnergy(move.getEnergyCost());
+
+        // Calculate damage with difficulty scaling
+        int damage = move.calculateDamage(difficulty);
+
+        // Apply damage
+        target.takeDamage(damage);
+
+        // Display result
+        System.out.println(Bcolors.BOLD + name + Bcolors.ENDC + " used " +
+                Bcolors.BRIGHT_YELLOW + move.getName() + Bcolors.ENDC + "!");
+        System.out.println(Bcolors.FAIL + target.getName() + " takes " + damage + " damage!" + Bcolors.ENDC);
+
+        return true;
+    }
+
     public void regenerateEnergy() {
         if (currentEnergy < maxEnergy) {
             currentEnergy++;
@@ -154,6 +177,52 @@ public class Pokeman {
                 enemyMoves.add(Move.createEnemyAttack());
                 return new Pokeman("Unknown", 30, 2, enemyMoves, false);
         }
+    }
+
+    public static Pokeman createEnemyPokeman(int battleNumber, int difficulty) {
+        ArrayList<Move> enemyMoves = new ArrayList<>();
+
+        // Base stats for each enemy
+        String[] names = { "Leafy", "Rocky", "Watery", "MEGA-DESTROYER" };
+        int[] baseHp = { 40, 50, 60, 100 };
+        int[] baseEnergy = { 2, 3, 3, 4 };
+        boolean[] isBoss = { false, false, false, true };
+
+        if (battleNumber < 1 || battleNumber > 4) {
+            enemyMoves.add(Move.createEnemyAttack());
+            return new Pokeman("Unknown", 30, 2, enemyMoves, false);
+        }
+
+        int index = battleNumber - 1;
+
+        // Difficulty scaling: higher difficulty = stronger enemies
+        // Difficulty 1-3: 90-100% base stats, 4-6: 100-120%, 7-10: 120-150%
+        double statMultiplier;
+        if (difficulty <= 3) {
+            statMultiplier = 0.9 + (difficulty - 1) * 0.05; // 0.9, 0.95, 1.0
+        } else if (difficulty <= 6) {
+            statMultiplier = 1.0 + (difficulty - 3) * 0.067; // 1.067, 1.133, 1.2
+        } else {
+            statMultiplier = 1.2 + (difficulty - 6) * 0.075; // 1.275, 1.35, 1.425, 1.5
+        }
+
+        int scaledHp = (int) Math.round(baseHp[index] * statMultiplier);
+        int scaledEnergy = Math.max(baseEnergy[index],
+                (int) Math.round(baseEnergy[index] * Math.min(statMultiplier, 1.5)));
+
+        // Add moves based on battle number
+        if (battleNumber == 4) {
+            enemyMoves.add(Move.createBossAttack());
+            enemyMoves.add(Move.createEnemyAttack());
+        } else {
+            enemyMoves.add(Move.createEnemyAttack());
+        }
+
+        return new Pokeman(names[index], scaledHp, scaledEnergy, enemyMoves, isBoss[index]);
+    }
+
+    public void heal(int amount) {
+        currentHp = Math.min(maxHp, currentHp + amount);
     }
 
     // Getters
