@@ -25,6 +25,7 @@ import com.arcade.util.Bcolors;
 import com.arcade.item.Functional;
 
 public class PokemanGame extends Game {
+    // TODO: ADJUST DIFFICULTY: DIFFICULTY 5 IS STILL NOT POSSIBLE
     private Pokeman playerPokeman;
     private Scanner scanner;
 
@@ -41,7 +42,7 @@ public class PokemanGame extends Game {
     public PokemanGame() {
         // Default constructor with preset values
         // for testing purposes
-        super(2, "Pokeman Adventure", 10, 15, 50);
+        super(2, "Pokeman Adventure", 5, 15, 50);
         this.scanner = new Scanner(System.in);
     }
 
@@ -69,7 +70,7 @@ public class PokemanGame extends Game {
 
         // Battle through 4 enemies
         for (int battleNumber = 1; battleNumber <= 4; battleNumber++) {
-            Pokeman enemy = Pokeman.createEnemyPokeman(battleNumber);
+            Pokeman enemy = Pokeman.createEnemyPokeman(battleNumber, this.getDifficulty());
 
             displayBattleIntro(battleNumber, enemy);
 
@@ -139,7 +140,7 @@ public class PokemanGame extends Game {
     }
 
     private boolean startBattle(Pokeman enemy) {
-        Battle battle = new Battle(playerPokeman, enemy);
+        Battle battle = new Battle(playerPokeman, enemy, this.getDifficulty());
         return battle.startBattle();
     }
 
@@ -159,28 +160,34 @@ public class PokemanGame extends Game {
     private void healPlayerPokeman() {
         System.out.println(STYLE_INFO + "\n✨ Your Pokeman rests and recovers some health..." + STYLE_END);
 
-        // Restore some HP and full energy
-        int healAmount = playerPokeman.getMaxHp() / 3; // Heal 1/3 of max HP
-        int newHp = Math.min(playerPokeman.getMaxHp(), playerPokeman.getCurrentHp() + healAmount);
+        // Difficulty-based healing: higher difficulty = less healing
+        // Difficulty 1-3: 25-30 HP, Difficulty 4-6: 15-20 HP, Difficulty 7-10: 5-10 HP
+        int baseHealing;
+        int healingVariance;
 
-        // Create a new pokeman with restored stats (simpler than adding setters)
-        playerPokeman = new Pokeman(
-                playerPokeman.getName(),
-                playerPokeman.getMaxHp(),
-                playerPokeman.getMaxEnergy(),
-                playerPokeman.getMoves(),
-                playerPokeman.isBoss());
-
-        // Manually set HP to healed amount
-        int damageToTake = playerPokeman.getMaxHp() - newHp;
-        if (damageToTake > 0) {
-            playerPokeman.takeDamage(damageToTake);
+        if (this.getDifficulty() <= 3) {
+            baseHealing = 25;
+            healingVariance = 5;
+        } else if (this.getDifficulty() <= 6) {
+            baseHealing = 15;
+            healingVariance = 5;
+        } else {
+            baseHealing = 5;
+            healingVariance = 5;
         }
 
-        System.out.println(STYLE_INFO + "HP restored! Energy fully recharged!" + STYLE_END);
-        System.out.println();
-        System.out.print("Press Enter to continue...");
-        scanner.nextLine();
+        java.util.Random random = new java.util.Random();
+        int healAmount = baseHealing + random.nextInt(healingVariance + 1);
+
+        int oldHp = playerPokeman.getCurrentHp();
+        int newHp = Math.min(playerPokeman.getMaxHp(), oldHp + healAmount);
+
+        // Manually set HP using reflection or add a heal method to Pokeman
+        // For now, we'll add a heal method to Pokeman class
+        playerPokeman.heal(healAmount);
+
+        System.out.println(STYLE_INFO + playerPokeman.getName() + " recovered " +
+                (newHp - oldHp) + " HP! (" + oldHp + " → " + newHp + ")" + STYLE_END);
     }
 
     private void displayVictoryScreen() {

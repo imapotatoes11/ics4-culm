@@ -41,6 +41,25 @@ public class Move {
         return baseDamage + random.nextInt(damageVariance + 1);
     }
 
+    public int calculateDamage(int difficulty) {
+        // Difficulty affects damage variance for enemies:
+        // Higher difficulty = more consistent (higher minimum) damage
+        if (difficulty >= 7) {
+            // High difficulty: 75-100% of max damage
+            int minDamage = (int) (baseDamage + damageVariance * 0.75);
+            int maxDamage = baseDamage + damageVariance;
+            return minDamage + random.nextInt(maxDamage - minDamage + 1);
+        } else if (difficulty >= 4) {
+            // Medium difficulty: 50-100% of max damage
+            int minDamage = (int) (baseDamage + damageVariance * 0.5);
+            int maxDamage = baseDamage + damageVariance;
+            return minDamage + random.nextInt(maxDamage - minDamage + 1);
+        } else {
+            // Low difficulty: normal variance (0-100%)
+            return calculateDamage();
+        }
+    }
+
     public boolean canAfford(int currentEnergy) {
         return currentEnergy >= energyCost;
     }

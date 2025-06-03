@@ -27,6 +27,7 @@ public class Battle {
     private Pokeman player;
     private Pokeman enemy;
     private int turnNumber;
+    private int difficulty;
     private Random random;
     private Scanner scanner;
 
@@ -38,9 +39,10 @@ public class Battle {
     private static final String STYLE_ERROR = Bcolors.FAIL;
     private static final String STYLE_END = Bcolors.ENDC;
 
-    public Battle(Pokeman player, Pokeman enemy) {
+    public Battle(Pokeman player, Pokeman enemy, int difficulty) {
         this.player = player;
         this.enemy = enemy;
+        this.difficulty = difficulty;
         this.turnNumber = 1;
         this.random = new Random();
         this.scanner = new Scanner(System.in);
@@ -121,8 +123,35 @@ public class Battle {
             return false;
         }
 
-        Move selectedMove = availableMoves.get(random.nextInt(availableMoves.size()));
-        enemy.useMove(selectedMove, player);
+        Move selectedMove;
+
+        // Difficulty-based AI: higher difficulty = smarter move selection
+        if (difficulty >= 7) {
+            // High difficulty: Always choose the highest damage move available
+            selectedMove = availableMoves.get(0);
+            for (Move move : availableMoves) {
+                if (move.getBaseDamage() > selectedMove.getBaseDamage()) {
+                    selectedMove = move;
+                }
+            }
+        } else if (difficulty >= 4) {
+            // Medium difficulty: 70% chance for highest damage move, 30% random
+            if (random.nextDouble() < 0.7) {
+                selectedMove = availableMoves.get(0);
+                for (Move move : availableMoves) {
+                    if (move.getBaseDamage() > selectedMove.getBaseDamage()) {
+                        selectedMove = move;
+                    }
+                }
+            } else {
+                selectedMove = availableMoves.get(random.nextInt(availableMoves.size()));
+            }
+        } else {
+            // Low difficulty: completely random move selection
+            selectedMove = availableMoves.get(random.nextInt(availableMoves.size()));
+        }
+
+        enemy.useMove(selectedMove, player, difficulty);
 
         return false; // Battle continues
     }
