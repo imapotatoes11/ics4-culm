@@ -1,6 +1,6 @@
 import java.util.*;
 import com.arcade.item.*;
-
+/*
 public class Wallet {
    private int tokens;
    private int tickets;
@@ -48,3 +48,4 @@ public class Wallet {
       this.cosmetics = cosmetics;
    }
 }
+*/

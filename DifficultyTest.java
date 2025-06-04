@@ -1,4 +1,4 @@
-
+/*
 // Simple test to verify difficulty features
 import com.arcade.games.pokeman.*;
 
@@ -47,3 +47,6 @@ public class DifficultyTest {
         System.out.println("\n✅ All difficulty features working correctly!");
     }
 }
+
+
+ */

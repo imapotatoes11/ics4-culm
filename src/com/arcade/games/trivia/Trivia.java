@@ -1,3 +1,4 @@
+/*
 public class Trivia extends Game {
    private Question[] questionList = new Question[30];
    
@@ -67,3 +68,5 @@ public class Trivia extends Game {
      return questionList;   
   }
 }
+
+ */
