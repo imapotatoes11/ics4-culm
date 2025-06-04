@@ -1,7 +1,7 @@
 public class Trivia extends Game {
    private Question[] questionList = new Question[30];
    
-   public void setAllQuestions () {
+   public Trivia () {
      questionList[0].setQuestion("What color is grass? \nA) Blue \nB) Green \nC) Red \nD) Yellow");
      questionList[0].setDifficultyLevel(1);
      questionList[0].setAnswer('b');
@@ -61,6 +61,50 @@ public class Trivia extends Game {
      questionList[14].setQuestion("Which planet in our solar system has the most moons? \nA) Jupiter \nB) Earth \nC) Saturn \nD) Uranus");
      questionList[14].setDifficultyLevel(5);
      questionList[14].setAnswer('c');
+     
+     questionList[15].setQuestion("Which of the following Celebrities are not bald? \nA) Tom Hardy \nB) Vin Diesel \nC) Dwayne Johnson \nD) Joe Rogan");
+     questionList[15].setDifficultyLevel(6);
+     questionList[15].setAnswer('a');
+     
+     questionList[16].setQuestion("What is the only letter not used in American State? \nA) Z \nB) P \nC) X \nD) Q");
+     questionList[16].setDifficultyLevel(6);
+     questionList[16].setAnswer('d');
+     
+     questionList[17].setQuestion("Which novel commences with the line Call Me Ishmael? \nA) Hamlet \nB) Percy Jackson \nC) Moby Dick \nD) Hunger Games");
+     questionList[17].setDifficultyLevel(6);
+     questionList[17].setAnswer('c');
+     
+     questionList[18].setQuestion("Which novel features the fictional language Newspeak? \nA) Brave New World \nB) The Road \nC) 1984 \nD) Hunger Games");
+     questionList[18].setDifficultyLevel(7);
+     questionList[18].setAnswer('c');
+     
+     questionList[19].setQuestion("What year did the Belin Wall fall? \nA) 1988 \nB) 1989 \nC) 1990 \nD) 1991");
+     questionList[19].setDifficultyLevel(7);
+     questionList[19].setAnswer('b');
+     
+     questionList[20].setQuestion("What is the name of a word that can be read the same forwards and backwards? \nA) Acroynm \nB) Emordnilap \nC) Palindrome \nD) Synonym");
+     questionList[20].setDifficultyLevel(7);
+     questionList[20].setAnswer('c');
+     
+     questionList[21].setQuestion("What element has the highest boiling point? \nA) Tungsten \nB) Plutonium \nC) Uranium \nD) Einsteinium");
+     questionList[21].setDifficultyLevel(8);
+     questionList[21].setAnswer('a');
+     
+     questionList[22].setQuestion("What is the oldest written language still used present day? \nA) English \nB) Hindi \nC) Arabic \nD) Chinese");
+     questionList[22].setDifficultyLevel(8);
+     questionList[22].setAnswer('d');
+     
+     questionList[23].setQuestion("What year did the Chernobyl nuclear disaster occur? \nA) 1985 \nB) 1986 \nC) 1987 \nD) 1988");
+     questionList[23].setDifficultyLevel(8);
+     questionList[23].setAnswer('b');
+     
+     questionList[24].setQuestion("What is the name of the largest moon on saturn? \nA) Titan \nB) Colossal \nC) Alpha 6 \nD) Gamma 9");
+     questionList[24].setDifficultyLevel(9);
+     questionList[24].setAnswer('a');
+     
+     questionList[25].setQuestion("What branch of mathematics is not included in Calculus AB? \nA) Projection \nB) Differentiation \nC) Integration \nD) Infinite Series");
+     questionList[25].setDifficultyLevel(9);
+     questionList[25].setAnswer('a');
   }
      
   public Question[] getQuestionList () {
