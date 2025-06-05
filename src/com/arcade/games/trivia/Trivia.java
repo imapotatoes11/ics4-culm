@@ -103,9 +103,25 @@ public class Trivia extends Game {
      questionList[24].setDifficultyLevel(9);
      questionList[24].setAnswer('a');
      
-     questionList[25].setQuestion("What branch of mathematics is not included in Calculus AB? \nA) Projection \nB) Differentiation \nC) Integration \nD) Infinite Series");
+     questionList[25].setQuestion("Rounded down to the nearest minute, what is the record breathe hold time underwater? \nA) 24 minutes \nB) 18 minutes \nC) 30 minutes \nD) 16 minutes");
      questionList[25].setDifficultyLevel(9);
      questionList[25].setAnswer('a');
+     
+     questionList[26].setQuestion("Rounded to the nearest meter, How tall is the CN Tower? \nA) 513 m \nB) 533 m \nC) 553 m \nD) 573 m");
+     questionList[26].setDifficultyLevel(9);
+     questionList[26].setAnswer('c');
+     
+     questionList[27].setQuestion("What is the only continent where coffee grows naturally? \nA) Asia \nB) South America \nC) Europe \nD) Africa");
+     questionList[27].setDifficultyLevel(10);
+     questionList[27].setAnswer('d');
+     
+     questionList[28].setQuestion("What color does gold leaf paper appear if you hold it up to a light? \nA) Still Gold \nB) Green \nC) Red \nD) Faint Blue");
+     questionList[28].setDifficultyLevel(10);
+     questionList[28].setAnswer('b');
+     
+     questionList[29].setQuestion("How long is a Jiffy? \nA) 1 millionth of a second \nB) 1 billionth of a second \nC) 1 trillionth of a second \nD) 1 thousandth of a second");
+     questionList[29].setDifficultyLevel(10);
+     questionList[29].setAnswer('c');
   }
      
   public Question[] getQuestionList () {
