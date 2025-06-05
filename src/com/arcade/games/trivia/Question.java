@@ -1,3 +1,5 @@
+package com.arcade.games.trivia;
+
 public class Question {
    private String question;
    private int difficultyLevel;
