@@ -1,16 +1,16 @@
-package src.com.arcade.games.diceopoly;
+package com.arcade.games.diceopoly;
+
 import java.util.*;
 import com.arcade.games.Game;
 
-public class Diceopoly{
-    private int pos = 0; //The users position on the board
-    private int diceCount = 7; //The number of dice the user can roll
-    private int boardLength = 30; //The length of the board array
-    private String[] board = new String[boardLength]; //The board the user is on
-    private int dice; //Your dice roll
+public class Diceopoly {
+    private int pos = 0; // The users position on the board
+    private int diceCount = 7; // The number of dice the user can roll
+    private int boardLength = 30; // The length of the board array
+    private String[] board = new String[boardLength]; // The board the user is on
+    private int dice; // Your dice roll
     Scanner sc = new Scanner(System.in);
     Random rand = new Random();
-
 
     public static void main(String[] args) {
         Diceopoly game = new Diceopoly();
@@ -19,7 +19,6 @@ public class Diceopoly{
         game.moving();
         System.out.println("Game Over! You finished at position " + game.pos);
     }
-
 
     public void moving() {
         while (diceCount > 0 && pos < boardLength - 1) {
@@ -30,12 +29,12 @@ public class Diceopoly{
                 dice = rollDice();
                 System.out.println("You rolled a " + dice);
 
-                //Move one tile at a time
+                // Move one tile at a time
                 for (int step = 0; step < dice && pos < boardLength - 1; step++) {
                     pos++;
                     printBoard();
 
-                    //End early if somehow moved to last tile
+                    // End early if somehow moved to last tile
                     if (pos >= boardLength - 1) {
                         System.out.println("You reached the end of the board. You Win!");
                         return;
@@ -69,61 +68,57 @@ public class Diceopoly{
         System.out.println("Board View: " + currentBoard);
     }
 
-
-
-
-
-    public int rollDice(){
-        return(rand.nextInt(1, 7));
+    public int rollDice() {
+        return (rand.nextInt(1, 7));
     }
 
-    public void generateBoard(){
-        for (int i = 0; i < boardLength; i ++){
+    public void generateBoard() {
+        for (int i = 0; i < boardLength; i++) {
             board[i] = generateTile();
         }
     }
-    //Used by generateBoard to generate a singular tile
-    public String generateTile(){
+
+    // Used by generateBoard to generate a singular tile
+    public String generateTile() {
         int randomNum;
         String tile;
         randomNum = rand.nextInt(1, 10);
-        switch (randomNum){
+        switch (randomNum) {
             case 5:
-                //extra dice tile
+                // extra dice tile
                 tile = "| +" + rand.nextInt(1, 3) + " Dice  |";
                 break;
 
             case 6:
-                //minus dice tile
+                // minus dice tile
                 tile = "| -" + rand.nextInt(1, 3) + " Dice  |";
                 break;
 
             case 7:
-                //move forward tile
+                // move forward tile
                 tile = "|Move -> " + rand.nextInt(1, 4) + " |";
                 break;
 
             case 8:
-                //move back tile
+                // move back tile
                 tile = "|Move <- " + rand.nextInt(1, 4) + " |";
                 break;
             case 9:
-                //Extra ticket tile
+                // Extra ticket tile
                 tile = "|   [ " + rand.nextInt(1, 4) + "]   |";
                 break;
             default:
-                //Empty tile
+                // Empty tile
                 tile = "|          |";
         }
-        return(tile);
+        return (tile);
     }
-
 
     public void emptySpace() {
         System.out.println("Landed on an empty tile. Nothing happens.");
     }
 
-    //Triggers when player lands on move space. Moves the user forwards or back
+    // Triggers when player lands on move space. Moves the user forwards or back
     public void moveSpace(String tile) {
         int move = Integer.parseInt(tile.replaceAll("[^0-9]", ""));
 
@@ -136,7 +131,6 @@ public class Diceopoly{
         }
     }
 
-
     public void moveDice(String tile) {
         int amount = Integer.parseInt(tile.replaceAll("[^0-9]", ""));
         if (tile.contains("+")) {
@@ -144,15 +138,12 @@ public class Diceopoly{
             diceCount += amount;
         } else if (tile.contains("-")) {
             System.out.println("Lost " + amount + " dice!");
-            if (diceCount < amount){
+            if (diceCount < amount) {
                 diceCount = 0;
-            }else {
+            } else {
                 diceCount -= amount;
             }
         }
     }
 
-
 }
-
-
