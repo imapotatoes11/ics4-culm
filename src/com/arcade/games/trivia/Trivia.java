@@ -1,8 +1,12 @@
-/*
+package com.arcade.games.trivia;
+import com.arcade.games.Game;
+
+
 public class Trivia extends Game {
    private Question[] questionList = new Question[30];
    
-   public Trivia () {
+   public Trivia (int id, String title, int difficulty, int requiredTokens, int ticketReward) {
+     super(id, title, difficulty, requiredTokens, ticketReward);
      questionList[0].setQuestion("What color is grass? \nA) Blue \nB) Green \nC) Red \nD) Yellow");
      questionList[0].setDifficultyLevel(1);
      questionList[0].setAnswer('b');
@@ -127,6 +131,8 @@ public class Trivia extends Game {
   public Question[] getQuestionList () {
      return questionList;   
   }
+  
+  public int runGame (ArrayList<Functional> useItems) {
+     
+  }
 }
-
- */
