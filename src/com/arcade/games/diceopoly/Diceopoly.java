@@ -30,7 +30,6 @@ public class Diceopoly extends Game {
         super(1, "Diceopoly", 3, 5, 10); // Example values for the constructor
     }
 
-    @Override
     public int runGame(ArrayList<Functional> useItems) {
         System.out.println("Welcome to Diceopoly!");
         System.out.println("You have " + diceCount + " dice to roll.");
@@ -40,7 +39,8 @@ public class Diceopoly extends Game {
         printBoard();
         moving();
 
-        return pos; // Return the final position
+        return 0;
+        // TODO: RETURN TICKET REWARDS
     }
 
     public static void main(String[] args) {
