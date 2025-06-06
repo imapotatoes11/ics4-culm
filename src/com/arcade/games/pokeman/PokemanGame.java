@@ -84,8 +84,7 @@ public class PokemanGame extends Game {
         initializeGame();
 
         // Battle through 4 enemies
-        battleLoop:
-        for (int battleNumber = 1; battleNumber <= 4; battleNumber++) {
+        battleLoop: for (int battleNumber = 1; battleNumber <= 4; battleNumber++) {
             Pokeman enemy = Pokeman.createEnemyPokeman(battleNumber, difficulty);
             displayBattleIntro(battleNumber, enemy);
 
@@ -98,8 +97,9 @@ public class PokemanGame extends Game {
                         System.out.println(STYLE_WARNING +
                                 "Extra Life used! " + playerPokeman.getName() +
                                 " is revived at full HP." + STYLE_END);
-                        battleNumber--;        // retry same battle
-                        continue battleLoop;   // jumps back to the next iteration of the outer loop
+                        battleNumber--; // retry same battle
+                        continue battleLoop; // jumps back to the next iteration of the outer loop
+                        // TODO: DONT USE CONTINUE
                     }
                 }
                 displayDefeatScreen();
