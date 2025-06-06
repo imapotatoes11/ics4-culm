@@ -138,11 +138,11 @@ public class Trivia extends Game {
       int count = 0;
       Scanner sc = new Scanner (System.in);
       for (int i = 0; i < questionList.length; i++) {
-         if (questionList[i].getDifficultyLevel == getDifficulty()) {
-            System.out.print(questionList[i].getQuestion);
+         if (questionList[i].getDifficultyLevel() == getDifficulty()) {
+            System.out.print(questionList[i].getQuestion());
             chosenAnswer = sc.nextLine().charAt(0);
             
-            if (chosenAnswer == questionList[i].getAnswer) {
+            if (chosenAnswer == questionList[i].getAnswer()) {
                count += 5;
             }
          }
@@ -153,8 +153,8 @@ public class Trivia extends Game {
    
    public int runGame (ArrayList<Functional> useItems) {
       System.out.println("Welcome to Trivia!");
-      System.out.println("Your chosen difficulty is" + getDifficulty + ". Here are your 3 questions");
+      System.out.println("Your chosen difficulty is" + getDifficulty() + ". Here are your 3 questions");
       
-      return promptQuestion;
+      return promptQuestion();
    }
 }
