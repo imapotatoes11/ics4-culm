@@ -22,7 +22,7 @@ package com.arcade.games.pokeman;
 import java.util.*;
 import com.arcade.games.Game;
 import com.arcade.util.Bcolors;
-import com.arcade.item.Functional;
+import com.arcade.item.*;
 
 public class PokemanGame extends Game {
     // TODO: ADJUST DIFFICULTY: DIFFICULTY 5 IS STILL NOT POSSIBLE
@@ -56,6 +56,8 @@ public class PokemanGame extends Game {
         // This is just a placeholder for testing purposes
         PokemanGame game = new PokemanGame();
         ArrayList<Functional> useItems = new ArrayList<>(); // Placeholder for items
+        useItems.add(new Luck("luck", 1, 10, 2));
+        useItems.add(new ExtraLife("extra life", 2, 10));
         game.runGame(useItems);
     }
 
@@ -66,31 +68,63 @@ public class PokemanGame extends Game {
         System.out.println("\n".repeat(lines != null ? Integer.parseInt(lines) : 20));
 
         displayGameIntro();
-        initializeGame();
 
-        // Battle through 4 enemies
-        for (int battleNumber = 1; battleNumber <= 4; battleNumber++) {
-            Pokeman enemy = Pokeman.createEnemyPokeman(battleNumber, this.getDifficulty());
-
-            displayBattleIntro(battleNumber, enemy);
-
-            if (!startBattle(enemy)) {
-                // Player lost
-                displayDefeatScreen();
-                return 0; // No tickets earned
-            }
-
-            displayBattleVictory(battleNumber, enemy);
-
-            // Heal player between battles (except after final battle)
-            if (battleNumber < 4) {
-                healPlayerPokeman();
+        // determine effective difficulty, apply Luck items
+        int difficulty = this.getDifficulty();
+        for (Functional item : useItems) {
+            if (item instanceof Luck && item.getNumUses() > 0) {
+                int factor = ((Luck) item).getDifficultyDecreaseFactor();
+                difficulty = Math.max(1, difficulty - factor);
+                item.setNumUses(item.getNumUses() - 1);
+                System.out.println(STYLE_INFO + "Luck used! Difficulty reduced to " +
+                        difficulty + STYLE_END);
             }
         }
 
-        // Player won all battles!
+        initializeGame();
+
+        // Battle through 4 enemies
+        battleLoop:
+        for (int battleNumber = 1; battleNumber <= 4; battleNumber++) {
+            Pokeman enemy = Pokeman.createEnemyPokeman(battleNumber, difficulty);
+            displayBattleIntro(battleNumber, enemy);
+
+            if (!startBattle(enemy, difficulty)) {
+                // try ExtraLife
+                for (Functional item : useItems) {
+                    if (item instanceof ExtraLife && item.getNumUses() > 0) {
+                        item.setNumUses(item.getNumUses() - 1);
+                        playerPokeman.heal(playerPokeman.getMaxHp());
+                        System.out.println(STYLE_WARNING +
+                                "Extra Life used! " + playerPokeman.getName() +
+                                " is revived at full HP." + STYLE_END);
+                        battleNumber--;        // retry same battle
+                        continue battleLoop;   // jumps back to the next iteration of the outer loop
+                    }
+                }
+                displayDefeatScreen();
+                return 0;
+            }
+
+            displayBattleVictory(battleNumber, enemy);
+            if (battleNumber < 4)
+                healPlayerPokeman();
+        }
+
+        // apply TicketMultiplier before awarding
+        int reward = this.getTicketReward();
+        for (Functional item : useItems) {
+            if (item instanceof TicketMultiplier && item.getNumUses() > 0) {
+                int mult = ((TicketMultiplier) item).getMultiplier();
+                reward *= mult;
+                item.setNumUses(item.getNumUses() - 1);
+                System.out.println(STYLE_INFO + "Ticket Multiplier used! " +
+                        "Your tickets x" + mult + STYLE_END);
+            }
+        }
+
         displayVictoryScreen();
-        return this.getTicketReward();
+        return reward;
     }
 
     private void displayGameIntro() {
@@ -139,8 +173,8 @@ public class PokemanGame extends Game {
         scanner.nextLine();
     }
 
-    private boolean startBattle(Pokeman enemy) {
-        Battle battle = new Battle(playerPokeman, enemy, this.getDifficulty());
+    private boolean startBattle(Pokeman enemy, int difficulty) {
+        Battle battle = new Battle(playerPokeman, enemy, difficulty);
         return battle.startBattle();
     }
 
