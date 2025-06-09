@@ -21,7 +21,13 @@ package com.arcade;
 
 import java.io.*;
 import java.util.*;
+import com.arcade.player.Player;
 
 public class ArcadeManager {
+    private static final String ARCADE_FILE = "arcade.txt";
+    private Player player;
 
+    public ArcadeManager(Player player) {
+        this.player = player;
+    }
 }
