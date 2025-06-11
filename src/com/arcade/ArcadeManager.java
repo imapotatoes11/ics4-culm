@@ -32,8 +32,61 @@ public class ArcadeManager {
     private List<Player> players;
     private List<Game> games;
 
-    public ArcadeManager(Player player) {
-        this.player = player;
+    public ArcadeManager() {
+        // initialize games here
+    }
+
+    public Player searchForPlayer(String username) {
+        if (username == null || username.isEmpty()) {
+            System.err.println("Username cannot be null or empty.");
+            return null;
+        }
+        this.players = loadFromFile();
+        for (Player p : players) {
+            if (p.getUsername().equals(username)) {
+                return p;
+            }
+        }
+        System.err.println("Player with username " + username + " not found.");
+        return null;
+    }
+
+    public boolean addPlayer(Player player) {
+        if (player == null) {
+            System.err.println("Player is null, cannot add to file.");
+            return false;
+        }
+        if (player.getUsername() == null || player.getPassword() == null || player.getName() == null) {
+            System.err.println("Player data is incomplete, cannot add to file.");
+            return false;
+        }
+        this.players = loadFromFile();
+        for (Player p : players) {
+            if (p.getUsername().equals(player.getUsername())) {
+                System.err.println("Player with username " + player.getUsername() + " already exists.");
+                return false;
+            }
+        }
+        players.add(player);
+        return saveToFile();
+    }
+
+    public boolean removePlayer(String username) {
+        if (username == null || username.isEmpty()) {
+            System.err.println("Username cannot be null or empty.");
+            return false;
+        }
+        this.players = loadFromFile();
+        Iterator<Player> iterator = players.iterator();
+        while (iterator.hasNext()) {
+            Player p = iterator.next();
+            if (p.getUsername().equals(username)) {
+                iterator.remove();
+                return saveToFile();
+            }
+        }
+        System.err.println("Player with username " + username + " not found.");
+        return false;
     }
 
     public boolean saveToFile() {
