@@ -21,6 +21,8 @@ package com.arcade;
 
 import java.io.*;
 import java.util.*;
+
+import com.arcade.games.Game;
 import com.arcade.player.Player;
 
 public class ArcadeManager {
@@ -28,6 +30,7 @@ public class ArcadeManager {
     private static String ARCADE_FILE = "arcade.txt";
     private Player player;
     private List<Player> players;
+    private List<Game> games;
 
     public ArcadeManager(Player player) {
         this.player = player;

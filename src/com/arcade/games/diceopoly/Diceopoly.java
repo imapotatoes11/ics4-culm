@@ -1,23 +1,60 @@
-package src.com.arcade.games.diceopoly;
-import java.util.*;
-import com.arcade.games.Game;
+package com.arcade.games.diceopoly;
 
-public class Diceopoly{
+import com.arcade.games.Game;
+import com.arcade.item.Functional;
+
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Scanner;
+
+
+public class Diceopoly extends Game{
     private int pos = 0; //The users position on the board
     private int diceCount = 7; //The number of dice the user can roll
-    private int boardLength = 30; //The length of the board array
+    private int boardLength = 20; //The length of the board array
     private String[] board = new String[boardLength]; //The board the user is on
     private int dice; //Your dice roll
+    private final int JACKPOT = 20; //The ticket reward for reaching the final tile
     Scanner sc = new Scanner(System.in);
     Random rand = new Random();
 
 
+
+    public Diceopoly() {
+        //id = 3, title = Diceopoly, difficulty = 3, requiredTokens = 15,
+        super(3, "Diceopoly", 3, 15, 20);
+    }
+
+    public Diceopoly(int id, String title, int difficulty, int requiredTokens, int ticketReward) {
+        super(id, title, difficulty, requiredTokens, ticketReward);
+    }
+
+
+
     public static void main(String[] args) {
         Diceopoly game = new Diceopoly();
-        game.generateBoard();
-        game.printBoard();
-        game.moving();
-        System.out.println("Game Over! You finished at position " + game.pos);
+        ArrayList<Functional> items = new ArrayList<>();  // no items used here
+        int earned = game.runGame(items);
+        System.out.printf("Game Over! You finished at position %d and earned %d tickets!%n", game.pos, earned);
+    }
+
+    @Override
+    public int runGame(ArrayList<Functional> items) {
+        //Factoring in difficulty into the game
+        //The more difficult it is, the longer the board is
+        boardLength += 2* getDifficulty();
+
+        generateBoard();
+        printBoard();
+        moving();
+
+        if (pos >= boardLength - 1) {
+            System.out.println("Congratulations! You reached the end.");
+            return getTicketReward();
+        } else {
+            System.out.println("You ran out of dice before finishing.");
+            return 0;
+        }
     }
 
 
