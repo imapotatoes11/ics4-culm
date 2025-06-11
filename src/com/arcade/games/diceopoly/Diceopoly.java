@@ -1,7 +1,10 @@
 package com.arcade.games.diceopoly;
 
+
 import com.arcade.games.Game;
 import com.arcade.item.Functional;
+import com.arcade.item.TicketMultiplier;
+import com.arcade.item.Luck;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -9,20 +12,21 @@ import java.util.Scanner;
 
 
 public class Diceopoly extends Game{
-    private int pos = 0; //The users position on the board
-    private int diceCount = 7; //The number of dice the user can roll
-    private int boardLength = 20; //The length of the board array
-    private String[] board = new String[boardLength]; //The board the user is on
-    private int dice; //Your dice roll
-    private final int JACKPOT = 20; //The ticket reward for reaching the final tile
     Scanner sc = new Scanner(System.in);
     Random rand = new Random();
 
+    private int pos = 0; //The users position on the board
+    private int diceCount = 7; //The number of dice the user can roll
+    private int boardLength = 20; //The length of the board array
+    private String[] board; //The board the user is on
+    private int dice; //Your dice roll
+    private int ticketMultiplier = 1; //The multipler for extra tickets
+    private final int JACKPOT = 20; //Ticket reward for landing on final space
 
 
     public Diceopoly() {
-        //id = 3, title = Diceopoly, difficulty = 3, requiredTokens = 15,
-        super(3, "Diceopoly", 3, 15, 20);
+        //id = 3, title = Diceopoly, difficulty = 3, requiredTokens = 15, ticketReward= 20
+        super(3, "Diceopoly", 3, 15, 0);
     }
 
     public Diceopoly(int id, String title, int difficulty, int requiredTokens, int ticketReward) {
@@ -40,20 +44,47 @@ public class Diceopoly extends Game{
 
     @Override
     public int runGame(ArrayList<Functional> items) {
+        //Activates items
+        for (Functional f: items) {
+            //If user uses luck item, decreases difficulty.
+            if (f instanceof Luck){
+                f.setNumUses(f.getNumUses() - 1);
+                if (getDifficulty() > 3){
+                    setDifficulty(getDifficulty() -2);
+                }else{
+                    setDifficulty(1);
+                }
+                //If user uses ticketmultiplier item, increases the ticket multiplier
+                //And by extensuon the num of tickets they win
+            } else if (f instanceof TicketMultiplier){
+                f.setNumUses(f.getNumUses() - 1);
+                ticketMultiplier = TicketMultiplier.MULTIPLIER;
+                //If any other item is used, states that the item is unusable
+            } else{
+                System.out.println("Sorry, you can't use this power up for Diceopoly.");
+            }
+        }
+
         //Factoring in difficulty into the game
         //The more difficult it is, the longer the board is
         boardLength += 2* getDifficulty();
+        //Initialize the board array now that boardLength is finalized
+        board = new String[boardLength];
 
         generateBoard();
         printBoard();
         moving();
 
+        //Sets ticket reward to be a third of the distance moved
+        setTicketReward(pos/3);
+
         if (pos >= boardLength - 1) {
             System.out.println("Congratulations! You reached the end.");
-            return getTicketReward();
+            //Returns the ticketreward plus the jackpot reward
+            return ticketMultiplier *(getTicketReward() + JACKPOT);
         } else {
             System.out.println("You ran out of dice before finishing.");
-            return 0;
+            return ticketMultiplier *getTicketReward();
         }
     }
 
@@ -99,11 +130,15 @@ public class Diceopoly extends Game{
     }
 
     public void printBoard() {
-        String currentBoard = "|  Player  |";
-        for (int i = pos + 1; i < pos + 5; i++) {
-            currentBoard += board[i] + " ";
+        StringBuilder view = new StringBuilder("|  Player  |");
+
+        //never go past boardLength
+        int end = Math.min(boardLength, pos + 5);
+        for (int i = pos + 1; i < end; i++) {
+            view.append(board[i]).append(" ");
         }
-        System.out.println("Board View: " + currentBoard);
+
+        System.out.println("Board View: " + view);
     }
 
 
@@ -118,12 +153,14 @@ public class Diceopoly extends Game{
         for (int i = 0; i < boardLength; i ++){
             board[i] = generateTile();
         }
+        //Edits the final tile to be a normal tile, in case a soft lock is caused
+        board[boardLength - 1] = "|          |";
     }
     //Used by generateBoard to generate a singular tile
     public String generateTile(){
         int randomNum;
         String tile;
-        randomNum = rand.nextInt(1, 10);
+        randomNum = rand.nextInt(1, 9);
         switch (randomNum){
             case 5:
                 //extra dice tile
@@ -143,10 +180,6 @@ public class Diceopoly extends Game{
             case 8:
                 //move back tile
                 tile = "|Move <- " + rand.nextInt(1, 4) + " |";
-                break;
-            case 9:
-                //Extra ticket tile
-                tile = "|   [ " + rand.nextInt(1, 4) + "]   |";
                 break;
             default:
                 //Empty tile

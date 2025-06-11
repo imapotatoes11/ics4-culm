@@ -115,7 +115,7 @@ public class PokemanGame extends Game {
         int reward = this.getTicketReward();
         for (Functional item : useItems) {
             if (item instanceof TicketMultiplier && item.getNumUses() > 0) {
-                int mult = ((TicketMultiplier) item).getMultiplier();
+                int mult = TicketMultiplier.MULTIPLIER;
                 reward *= mult;
                 item.setNumUses(item.getNumUses() - 1);
                 System.out.println(STYLE_INFO + "Ticket Multiplier used! " +

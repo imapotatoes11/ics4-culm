@@ -23,20 +23,12 @@ import java.io.*;
 import java.util.*;
 
 public class TicketMultiplier extends Functional {
-    private int multiplier;
+    public static final int MULTIPLIER = 2;
 
-    public TicketMultiplier(String name, int numUses, int price, int multiplier) {
+    public TicketMultiplier(String name, int numUses, int price) {
         super(name, numUses, price);
-        this.multiplier = multiplier;
     }
 
-    public int getMultiplier() {
-        return multiplier;
-    }
-
-    public void setMultiplier(int multiplier) {
-        this.multiplier = multiplier;
-    }
 
     @Override
     public void activate() {
