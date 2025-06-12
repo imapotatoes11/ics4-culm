@@ -7,6 +7,30 @@ public class Player {
    private String name;
    private int creditCardInfo;
 
+   public Player(String username, String password) {
+      this.username = username;
+      this.password = password;
+      this.age = 0; // default age
+      this.name = ""; // default name
+      this.creditCardInfo = 0; // default credit card info
+   }
+
+   public Player() {
+      this.username = "";
+      this.password = "";
+      this.age = 0; // default age
+      this.name = ""; // default name
+      this.creditCardInfo = 0; // default credit card info
+   }
+
+   public Player(String username, String password, int age, String name, int creditCardInfo) {
+      this.username = username;
+      this.password = password;
+      this.age = age;
+      this.name = name;
+      this.creditCardInfo = creditCardInfo;
+   }
+
    public String getUsername() {
       return username;
    }

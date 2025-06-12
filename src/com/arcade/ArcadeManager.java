@@ -20,6 +20,9 @@
 package com.arcade;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import com.arcade.games.Game;
@@ -32,8 +35,26 @@ public class ArcadeManager {
     private List<Player> players;
     private List<Game> games;
 
+    public static enum LoginStatus {
+        INCORRECT_PASSWORD, USERNAME_NOT_FOUND, SUCCESS
+    }
+
     public ArcadeManager() {
         // initialize games here
+    }
+
+    public LoginStatus tryLogin(String username, String password) {
+        // First check if player with username exists
+        Player p = searchForPlayer(username);
+        if (p != null) {
+            // Player exists, check password
+            if (p.getPassword().equals(password)) {
+                return LoginStatus.SUCCESS;
+            } else {
+                return LoginStatus.INCORRECT_PASSWORD;
+            }
+        }
+        return LoginStatus.USERNAME_NOT_FOUND;
     }
 
     public Player searchForPlayer(String username) {
@@ -49,6 +70,24 @@ public class ArcadeManager {
         }
         System.err.println("Player with username " + username + " not found.");
         return null;
+    }
+
+    public List<Player> searchForPlayersByName(String name) {
+        if (name == null || name.isEmpty()) {
+            System.err.println("Name cannot be null or empty.");
+            return Collections.emptyList();
+        }
+        this.players = loadFromFile();
+        List<Player> foundPlayers = new ArrayList<>();
+        for (Player p : players) {
+            if (p.getName().equalsIgnoreCase(name)) {
+                foundPlayers.add(p);
+            }
+        }
+        if (foundPlayers.isEmpty()) {
+            System.err.println("No players found with name " + name + ".");
+        }
+        return foundPlayers;
     }
 
     public boolean addPlayer(Player player) {
@@ -123,17 +162,34 @@ public class ArcadeManager {
     public List<Player> loadFromFile() {
         List<Player> players = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(ARCADE_FILE))) {
-            String username;
-            while ((username = reader.readLine()) != null) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.equals("end"))
+                    break; // stop at end marker
+                // TODO: DO WITHOUT BREAK AND CONTINUE
+                if (line.equals(":"))
+                    continue; // skip separators
+
+                String username = line;
                 String password = reader.readLine();
-                int age = Integer.parseInt(reader.readLine());
+                String ageLine = reader.readLine();
                 String name = reader.readLine();
-                Player player = new Player();
-                player.setUsername(username);
-                player.setPassword(password);
-                player.setAge(age);
-                player.setName(name);
-                players.add(player);
+                reader.readLine(); // consume the ":" after each record
+
+                int age;
+                try {
+                    age = Integer.parseInt(ageLine);
+                } catch (NumberFormatException e) {
+                    System.err.println("Invalid age for user " + username + ": " + ageLine);
+                    continue;
+                }
+
+                Player p = new Player();
+                p.setUsername(username);
+                p.setPassword(password);
+                p.setAge(age);
+                p.setName(name);
+                players.add(p);
             }
         } catch (IOException e) {
             System.err.println("Error loading from file: " + e.getMessage());
