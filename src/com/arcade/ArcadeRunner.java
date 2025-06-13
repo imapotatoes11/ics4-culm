@@ -50,7 +50,7 @@ public class ArcadeRunner {
                 System.out.print("Enter username (must be unique): ");
                 String username = sc.nextLine();
                 // Check if username already exists
-                if (arcadeManager.searchForPlayer(username) != null) {
+                if (arcadeManager.searchForPlayer(username.toLowerCase()) != null) {
                     System.out
                             .println("Error: Username already exists. Try logging in or select a different username.");
                 } else {
