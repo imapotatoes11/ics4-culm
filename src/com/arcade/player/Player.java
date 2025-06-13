@@ -7,6 +7,7 @@ public class Player {
    private String name;
    private int creditCardInfo;
 
+
    public Player(String username, String password) {
       this.username = username;
       this.password = password;

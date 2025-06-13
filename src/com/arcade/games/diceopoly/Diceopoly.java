@@ -37,18 +37,18 @@ public class Diceopoly extends Game{
 
     public static void main(String[] args) {
         Diceopoly game = new Diceopoly();
-        ArrayList<Functional> items = new ArrayList<>();  // no items used here
+        ArrayList<Functional> items = new ArrayList<>();
         int earned = game.runGame(items);
         System.out.printf("Game Over! You finished at position %d and earned %d tickets!%n", game.pos, earned);
     }
 
-    @Override
+
     public int runGame(ArrayList<Functional> items) {
         //Activates items
         for (Functional f: items) {
             //If user uses luck item, decreases difficulty.
             if (f instanceof Luck){
-                f.setNumUses(f.getNumUses() - 1);
+                f.activate();
                 if (getDifficulty() > 3){
                     setDifficulty(getDifficulty() -2);
                 }else{
@@ -57,7 +57,7 @@ public class Diceopoly extends Game{
                 //If user uses ticketmultiplier item, increases the ticket multiplier
                 //And by extensuon the num of tickets they win
             } else if (f instanceof TicketMultiplier){
-                f.setNumUses(f.getNumUses() - 1);
+                f.activate();
                 ticketMultiplier = TicketMultiplier.MULTIPLIER;
                 //If any other item is used, states that the item is unusable
             } else{

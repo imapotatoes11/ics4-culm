@@ -2,10 +2,14 @@ package com.arcade.games.trivia;
 
 import com.arcade.games.Game;
 import com.arcade.item.Functional;
+import com.arcade.item.Luck;
+import com.arcade.item.TicketMultiplier;
+
 import java.util.*;
 
 public class Trivia extends Game {
    private Question[] questionList = new Question[30];
+   private int ticketMultiplier = 1;
 
    // move all question text, difficulty, and answer into one place
    private static final Object[][] QUESTION_DATA = new Object[][] {
@@ -105,21 +109,53 @@ public class Trivia extends Game {
       return count;
    }
 
-   public int runGame(ArrayList<Functional> useItems) {
+   public int runGame(ArrayList<Functional> items) {
+      for (Functional f: items) {
+         //If user uses luck item, decreases difficulty.
+         if (f instanceof Luck){
+            f.activate();
+            if (getDifficulty() > 3){
+               setDifficulty(getDifficulty() -2);
+            }else{
+               setDifficulty(1);
+            }
+            //If user uses ticketmultiplier item, increases the ticket multiplier
+            //And by extension the num of tickets they win
+         } else if (f instanceof TicketMultiplier){
+            f.activate();
+            ticketMultiplier = TicketMultiplier.MULTIPLIER;
+            //If any other item is used, states that the item is unusable
+         } else{
+            System.out.println("Sorry, you can't use this power up for Diceopoly.");
+         }
+      }
+
+
+
+
+
+
+
+
+
       int originalReward = super.getTicketReward();
 
       System.out.println("Welcome to Trivia!");
-      System.out.println("Your chosen difficulty is " + getDifficulty() + ". Here are your 3 questions:");
+      System.out.println("Your calculated difficulty is " + getDifficulty() + ". Here are your 3 questions:");
 
       int gameOutcome = promptQuestion();
+      //Runs the game, then sets ticket reward to be the base ticket reward, plus the tickets earned
+      //by the game, all multiplied by the ticket multiplier
+      setTicketReward((getTicketReward() + promptQuestion())*ticketMultiplier);
 
-      return gameOutcome + originalReward;
+      System.out.printf("Game Over! You've earned %d tickets!", getTicketReward());
+
+      return getTicketReward();
    }
 
    public static void main(String[] args) {
       Trivia game = new Trivia(3, "Trivia", 5, 2, 10);
       ArrayList<Functional> items = new ArrayList<>(); // no items used here
       int earned = game.runGame(items);
-      System.out.printf("Game Over! You've earned %d tickets!", earned);
    }
 }
