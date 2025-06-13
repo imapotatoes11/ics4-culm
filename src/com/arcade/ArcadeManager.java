@@ -145,7 +145,7 @@ public class ArcadeManager {
             // writer.write(player.getAge() + "\n");
             // writer.write(player.getName() + "\n");
             for (Player p : players) {
-                writer.write(p.getUsername() + "\n");
+                writer.write(p.getUsername().toLowerCase() + "\n");
                 writer.write(p.getPassword() + "\n");
                 writer.write(p.getAge() + "\n");
                 writer.write(p.getName() + "\n");
@@ -185,11 +185,14 @@ public class ArcadeManager {
                 }
 
                 Player p = new Player();
-                p.setUsername(username);
+                p.setUsername(username.toLowerCase());
                 p.setPassword(password);
                 p.setAge(age);
                 p.setName(name);
                 players.add(p);
+                System.out.println(
+                        "Found player: " + p.getUsername() + ", Age: " + p.getAge() + ", Name: " + p.getName());
+                System.out.println("Player password: " + p.getPassword()); // Debugging line
             }
         } catch (IOException e) {
             System.err.println("Error loading from file: " + e.getMessage());
