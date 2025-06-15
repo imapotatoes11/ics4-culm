@@ -26,7 +26,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import com.arcade.games.Game;
+import com.arcade.games.blackjack.BlackJack;
+import com.arcade.games.pokeman.PokemanGame;
+import com.arcade.games.diceopoly.Diceopoly;
+import com.arcade.games.trivia.Trivia;
+import com.arcade.escaperoom.EscapeRoom;
 import com.arcade.player.Player;
+import com.arcade.item.Achievement;
+import com.arcade.item.Functional;
 
 public class ArcadeManager {
     // TODO: Store instances of the games
@@ -41,6 +48,14 @@ public class ArcadeManager {
 
     public ArcadeManager() {
         // initialize games here
+        this.games = new ArrayList<>();
+
+        // Add all available game instances
+        games.add(new BlackJack());
+        games.add(new PokemanGame());
+        games.add(new Diceopoly());
+        games.add(new Trivia(4, "Trivia", 5, 20, 30));
+        games.add(new EscapeRoom());
     }
 
     public LoginStatus tryLogin(String username, String password) {
@@ -131,21 +146,11 @@ public class ArcadeManager {
     }
 
     public boolean saveToFile() {
-        if (player == null) {
-            System.err.println("Player is null, cannot save to file.");
-            return false;
+        if (players == null || players.isEmpty()) {
+            this.players = loadFromFile();
         }
-        if (player.getUsername() == null || player.getPassword() == null || player.getName() == null) {
-            System.err.println("Player data is incomplete, cannot save to file.");
-            return false;
-        }
-        this.players = loadFromFile();
-        // ~~TODONE: load file first then append new player data~~
+
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARCADE_FILE))) {
-            // writer.write(player.getUsername() + "\n");
-            // writer.write(player.getPassword() + "\n");
-            // writer.write(player.getAge() + "\n");
-            // writer.write(player.getName() + "\n");
             for (Player p : players) {
                 writer.write(p.getUsername().toLowerCase() + "\n");
                 writer.write(p.getPassword() + "\n");
@@ -225,5 +230,241 @@ public class ArcadeManager {
 
     public static void setArcadeFile(String arcadeFile) {
         ARCADE_FILE = arcadeFile;
+    }
+
+    // Check if current player is admin (username "admin")
+    public boolean isAdmin() {
+        return player != null && "admin".equals(player.getUsername());
+    }
+
+    // NEW METHODS FOR ENHANCED FUNCTIONALITY
+
+    /**
+     * Quick Sort implementation for sorting players by username
+     * Demonstrates: Sorting Algorithm #1, Recursion
+     */
+    public void sortPlayersByUsername() {
+        this.players = loadFromFile();
+        Player[] playerArray = players.toArray(new Player[0]);
+        quickSortPlayers(playerArray, 0, playerArray.length - 1);
+        this.players = Arrays.asList(playerArray);
+    }
+
+    private void quickSortPlayers(Player[] arr, int low, int high) {
+        if (low < high) {
+            int pi = partitionPlayers(arr, low, high);
+            quickSortPlayers(arr, low, pi - 1); // Recursion
+            quickSortPlayers(arr, pi + 1, high); // Recursion
+        }
+    }
+
+    private int partitionPlayers(Player[] arr, int low, int high) {
+        String pivot = arr[high].getUsername();
+        int i = (low - 1);
+
+        for (int j = low; j < high; j++) {
+            if (arr[j].getUsername().compareToIgnoreCase(pivot) <= 0) {
+                i++;
+                Player temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+        }
+
+        Player temp = arr[i + 1];
+        arr[i + 1] = arr[high];
+        arr[high] = temp;
+
+        return i + 1;
+    }
+
+    /**
+     * Merge Sort implementation for sorting players by age
+     * Demonstrates: Sorting Algorithm #2, Recursion
+     */
+    public void sortPlayersByAge() {
+        this.players = loadFromFile();
+        Player[] playerArray = players.toArray(new Player[0]);
+        mergeSortPlayersByAge(playerArray, 0, playerArray.length - 1);
+        this.players = Arrays.asList(playerArray);
+    }
+
+    private void mergeSortPlayersByAge(Player[] arr, int left, int right) {
+        if (left < right) {
+            int mid = left + (right - left) / 2;
+            mergeSortPlayersByAge(arr, left, mid); // Recursion
+            mergeSortPlayersByAge(arr, mid + 1, right); // Recursion
+            mergePlayersByAge(arr, left, mid, right);
+        }
+    }
+
+    private void mergePlayersByAge(Player[] arr, int left, int mid, int right) {
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
+
+        Player[] leftArr = new Player[n1];
+        Player[] rightArr = new Player[n2];
+
+        System.arraycopy(arr, left, leftArr, 0, n1);
+        System.arraycopy(arr, mid + 1, rightArr, 0, n2);
+
+        int i = 0, j = 0, k = left;
+
+        while (i < n1 && j < n2) {
+            if (leftArr[i].getAge() <= rightArr[j].getAge()) {
+                arr[k] = leftArr[i];
+                i++;
+            } else {
+                arr[k] = rightArr[j];
+                j++;
+            }
+            k++;
+        }
+
+        while (i < n1) {
+            arr[k] = leftArr[i];
+            i++;
+            k++;
+        }
+
+        while (j < n2) {
+            arr[k] = rightArr[j];
+            j++;
+            k++;
+        }
+    }
+
+    /**
+     * Binary Search implementation for searching players by username
+     * Demonstrates: Searching Algorithm #1, requires sorted array
+     */
+    public Player binarySearchPlayerByUsername(String username) {
+        sortPlayersByUsername(); // Ensure sorted
+        Player[] playerArray = players.toArray(new Player[0]);
+        return binarySearchRecursive(playerArray, username.toLowerCase(), 0, playerArray.length - 1);
+    }
+
+    private Player binarySearchRecursive(Player[] arr, String target, int left, int right) {
+        if (left <= right) {
+            int mid = left + (right - left) / 2;
+
+            int comparison = arr[mid].getUsername().compareToIgnoreCase(target);
+
+            if (comparison == 0) {
+                return arr[mid];
+            } else if (comparison > 0) {
+                return binarySearchRecursive(arr, target, left, mid - 1); // Recursion
+            } else {
+                return binarySearchRecursive(arr, target, mid + 1, right); // Recursion
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Linear Search implementation for searching players by age range
+     * Demonstrates: Searching Algorithm #2
+     */
+    public List<Player> linearSearchPlayersByAgeRange(int minAge, int maxAge) {
+        this.players = loadFromFile();
+        List<Player> result = new ArrayList<>();
+
+        for (Player p : players) {
+            if (p.getAge() >= minAge && p.getAge() <= maxAge) {
+                result.add(p);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Recursive method to calculate factorial (demonstration of recursion)
+     * Used for calculating achievement points
+     */
+    public int calculateFactorial(int n) {
+        if (n <= 1) {
+            return 1;
+        }
+        return n * calculateFactorial(n - 1); // Recursion
+    }
+
+    /**
+     * Display all players with formatting
+     */
+    public void displayAllPlayers() {
+        this.players = loadFromFile();
+        if (players.isEmpty()) {
+            System.out.println("No players found.");
+            return;
+        }
+
+        System.out.println("\n=== ALL PLAYERS ===");
+        System.out.println("Username\t\tName\t\tAge\tAchievements");
+        System.out.println("--------------------------------------------------------");
+
+        for (Player p : players) {
+            System.out.printf("%-15s\t%-15s\t%d\t%d\n",
+                    p.getUsername(),
+                    p.getName(),
+                    p.getAge(),
+                    p.getAchievements().size());
+        }
+    }
+
+    /**
+     * Display players sorted by username
+     */
+    public void displayPlayersSortedByUsername() {
+        sortPlayersByUsername();
+        System.out.println("\n=== PLAYERS SORTED BY USERNAME ===");
+        displayAllPlayers();
+    }
+
+    /**
+     * Display players sorted by age
+     */
+    public void displayPlayersSortedByAge() {
+        sortPlayersByAge();
+        System.out.println("\n=== PLAYERS SORTED BY AGE ===");
+        displayAllPlayers();
+    }
+
+    /**
+     * Search and display players by age range
+     */
+    public void searchPlayersByAgeRange(int minAge, int maxAge) {
+        List<Player> results = linearSearchPlayersByAgeRange(minAge, maxAge);
+
+        if (results.isEmpty()) {
+            System.out.println("No players found in age range " + minAge + "-" + maxAge);
+            return;
+        }
+
+        System.out.println("\n=== PLAYERS IN AGE RANGE " + minAge + "-" + maxAge + " ===");
+        System.out.println("Username\t\tName\t\tAge");
+        System.out.println("----------------------------------------");
+
+        for (Player p : results) {
+            System.out.printf("%-15s\t%-15s\t%d\n",
+                    p.getUsername(),
+                    p.getName(),
+                    p.getAge());
+        }
+    }
+
+    // Get games list for playing
+    public List<Game> getGames() {
+        return games;
+    }
+
+    // Get game by ID
+    public Game getGameById(int id) {
+        for (Game game : games) {
+            if (game.getId() == id) {
+                return game;
+            }
+        }
+        return null;
     }
 }
