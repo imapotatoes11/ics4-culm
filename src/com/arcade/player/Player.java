@@ -1,6 +1,7 @@
 package com.arcade.player;
 
 import com.arcade.item.Achievement;
+import com.arcade.wallet.Wallet;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -16,9 +17,14 @@ public class Player {
    private String password; // password is hashed sha-256
    private int age;
    private List<Achievement> achievements = new ArrayList<>();
+   private Wallet wallet;
 
    public Player(String name) {
       this.name = name;
+      this.wallet = new Wallet();
+      // Give new players some starting tokens and tickets
+      this.wallet.setTokens(50);
+      this.wallet.setTickets(0);
    }
 
    public Player(String name, String username, String password, int age) {
@@ -26,6 +32,10 @@ public class Player {
       this.username = username;
       this.password = password; // should be hashed
       this.age = age;
+      this.wallet = new Wallet();
+      // Give new players some starting tokens and tickets
+      this.wallet.setTokens(50);
+      this.wallet.setTickets(0);
    }
 
    public String getUsername() {
@@ -156,5 +166,34 @@ public class Player {
 
    public String getName() {
       return name;
+   }
+
+   public Wallet getWallet() {
+      return wallet;
+   }
+
+   public void setWallet(Wallet wallet) {
+      this.wallet = wallet;
+   }
+
+   // Convenience methods for wallet operations
+   public boolean hasEnoughTokens(int requiredTokens) {
+      return wallet.getTokens() >= requiredTokens;
+   }
+
+   public boolean spendTokens(int amount) {
+      if (hasEnoughTokens(amount)) {
+         wallet.setTokens(wallet.getTokens() - amount);
+         return true;
+      }
+      return false;
+   }
+
+   public void addTickets(int amount) {
+      wallet.setTickets(wallet.getTickets() + amount);
+   }
+
+   public void addTokens(int amount) {
+      wallet.setTokens(wallet.getTokens() + amount);
    }
 }

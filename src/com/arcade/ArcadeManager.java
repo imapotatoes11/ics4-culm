@@ -29,8 +29,8 @@ import com.arcade.games.Game;
 import com.arcade.games.blackjack.BlackJack;
 import com.arcade.games.pokeman.PokemanGame;
 import com.arcade.games.diceopoly.Diceopoly;
+import com.arcade.games.escaperoom.EscapeRoom;
 import com.arcade.games.trivia.Trivia;
-import com.arcade.escaperoom.EscapeRoom;
 import com.arcade.player.Player;
 import com.arcade.item.Achievement;
 import com.arcade.item.Functional;
@@ -50,12 +50,31 @@ public class ArcadeManager {
         // initialize games here
         this.games = new ArrayList<>();
 
-        // Add all available game instances
-        games.add(new BlackJack());
-        games.add(new PokemanGame());
-        games.add(new Diceopoly());
-        games.add(new Trivia(4, "Trivia", 5, 20, 30));
-        games.add(new EscapeRoom());
+        // Add all available game instances with variable rewards
+        BlackJack blackjack = new BlackJack(1, "Blackjack", 10, 10, 20);
+        blackjack.setMinTicketReward(10);
+        blackjack.setMaxTicketReward(30);
+        games.add(blackjack);
+
+        PokemanGame pokemon = new PokemanGame(2, "Pokemon Battle", 8, 15, 25);
+        pokemon.setMinTicketReward(15);
+        pokemon.setMaxTicketReward(40);
+        games.add(pokemon);
+
+        Diceopoly diceopoly = new Diceopoly(3, "Diceopoly", 6, 20, 35);
+        diceopoly.setMinTicketReward(20);
+        diceopoly.setMaxTicketReward(50);
+        games.add(diceopoly);
+
+        Trivia trivia = new Trivia(4, "Trivia Challenge", 5, 8, 16);
+        trivia.setMinTicketReward(8);
+        trivia.setMaxTicketReward(25);
+        games.add(trivia);
+
+        EscapeRoom escapeRoom = new EscapeRoom(5, "Escape Room", 9, 25, 42);
+        escapeRoom.setMinTicketReward(25);
+        escapeRoom.setMaxTicketReward(60);
+        games.add(escapeRoom);
     }
 
     public LoginStatus tryLogin(String username, String password) {
@@ -458,6 +477,66 @@ public class ArcadeManager {
         return games;
     }
 
+    /**
+     * Calculate difficulty adjustment based on player age
+     * Players aged 20-30 have highest difficulty (no adjustment)
+     * Younger or older players get reduced difficulty
+     * 
+     * @param baseGameDifficulty The original difficulty of the game
+     * @param playerAge          The age of the current player
+     * @return The adjusted difficulty (clamped between 1-10)
+     */
+    public int calculateAgeBasedDifficulty(int baseGameDifficulty, int playerAge) {
+        if (playerAge >= 20 && playerAge <= 30) {
+            // Players in their 20s-30s get full difficulty
+            return baseGameDifficulty;
+        }
+
+        // Calculate how far the player is from the optimal age range (20-30)
+        int distanceFromOptimal;
+        if (playerAge < 20) {
+            distanceFromOptimal = 20 - playerAge;
+        } else {
+            distanceFromOptimal = playerAge - 30;
+        }
+
+        // Reduce difficulty based on distance from optimal age
+        // Each 5 years away reduces difficulty by 1 level
+        int difficultyReduction = distanceFromOptimal / 5;
+
+        // Apply the reduction
+        int adjustedDifficulty = baseGameDifficulty - difficultyReduction;
+
+        // Ensure difficulty stays within valid range (1-10)
+        return Math.max(1, Math.min(10, adjustedDifficulty));
+    }
+
+    /**
+     * Adjust game difficulty based on current player's age
+     * This method modifies the game's difficulty setting
+     * 
+     * @param game The game to adjust
+     */
+    public void adjustGameDifficultyForCurrentPlayer(Game game) {
+        if (player == null) {
+            System.err.println("No current player set, cannot adjust difficulty");
+            return;
+        }
+
+        // Store the original difficulty as a backup
+        int originalDifficulty = game.getDifficulty();
+
+        // Calculate and apply age-based difficulty
+        int adjustedDifficulty = calculateAgeBasedDifficulty(originalDifficulty, player.getAge());
+        game.setDifficulty(adjustedDifficulty);
+
+        // Display the adjustment to the player
+        if (adjustedDifficulty != originalDifficulty) {
+            System.out.println("📊 Difficulty adjusted for your age (" + player.getAge() + "): "
+                    + originalDifficulty + " → " + adjustedDifficulty);
+        }
+    }
+
     // Get game by ID
     public Game getGameById(int id) {
         for (Game game : games) {
@@ -466,5 +545,42 @@ public class ArcadeManager {
             }
         }
         return null;
+    }
+
+    /**
+     * Check if the current player can afford to play a game
+     */
+    public boolean canPlayerAffordGame(Game game) {
+        return player != null && player.hasEnoughTokens(game.getRequiredTokens());
+    }
+
+    /**
+     * Process game payment and award tickets
+     * 
+     * @param game       The game being played
+     * @param ticketsWon The number of tickets won
+     * @return true if transaction successful, false otherwise
+     */
+    public boolean processGameTransaction(Game game, int ticketsWon) {
+        if (player == null) {
+            System.err.println("No player logged in for transaction.");
+            return false;
+        }
+
+        // Deduct tokens (this should have been checked before calling this method)
+        if (!player.spendTokens(game.getRequiredTokens())) {
+            System.err.println("Player cannot afford this game.");
+            return false;
+        }
+
+        // Award tickets
+        player.addTickets(ticketsWon);
+
+        System.out.println(
+                "💰 Transaction complete: -" + game.getRequiredTokens() + " tokens, +" + ticketsWon + " tickets");
+        System.out.println("💳 Current balance: " + player.getWallet().getTokens() + " tokens, " +
+                player.getWallet().getTickets() + " tickets");
+
+        return true;
     }
 }

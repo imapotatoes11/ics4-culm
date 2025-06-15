@@ -73,85 +73,141 @@ public class Trivia extends Game {
       }
    }
 
+   public Trivia() {
+      super(1, "Trivia", 10, 10, 20);
+   }
+
    public Question[] getQuestionList() {
       return questionList;
    }
 
-   public int promptQuestion() {
+   public int runGame(ArrayList<Functional> items) {
+      for (Functional f : items) {
+         // If user uses luck item, decreases difficulty.
+         if (f instanceof Luck) {
+            f.activate();
+            if (getDifficulty() > 3) {
+               setDifficulty(getDifficulty() - 2);
+            } else {
+               setDifficulty(1);
+            }
+            // If user uses ticketmultiplier item, increases the ticket multiplier
+            // And by extension the num of tickets they win
+         } else if (f instanceof TicketMultiplier) {
+            f.activate();
+            ticketMultiplier = TicketMultiplier.MULTIPLIER;
+            // If any other item is used, states that the item is unusable
+         } else {
+            System.out.println("Sorry, you can't use this power up for Trivia.");
+         }
+      }
+
+      System.out.println("Welcome to Trivia!");
+      System.out.println("Your calculated difficulty is " + getDifficulty() + ". Here are your questions:");
+
+      // Get game results
+      TriviaResult result = runTriviaQuestions();
+
+      // Calculate performance-based ticket reward
+      double performanceScore = calculatePerformanceScore(result);
+      int baseTickets = calculateTicketReward(performanceScore);
+      int finalTickets = baseTickets * ticketMultiplier;
+
+      System.out.printf("Game Over! You answered %d/%d questions correctly with a score of %d!\n",
+            result.correctAnswers, result.totalQuestions, result.score);
+      System.out.printf("You've earned %d tickets!\n", finalTickets);
+
+      return finalTickets;
+   }
+
+   /**
+    * Container class for trivia results
+    */
+   private static class TriviaResult {
+      int score;
+      int correctAnswers;
+      int totalQuestions;
+
+      TriviaResult(int score, int correctAnswers, int totalQuestions) {
+         this.score = score;
+         this.correctAnswers = correctAnswers;
+         this.totalQuestions = totalQuestions;
+      }
+   }
+
+   /**
+    * Run trivia questions and return results
+    */
+   public TriviaResult runTriviaQuestions() {
       char chosenAnswer;
-      int count = 0;
+      int score = 0;
+      int correctAnswers = 0;
+      int totalQuestions = 0;
       Scanner sc = new Scanner(System.in);
+
       for (int i = 0; i < questionList.length; i++) {
          if (questionList[i].getDifficultyLevel() == getDifficulty()) {
+            totalQuestions++;
             System.out.print(questionList[i].getQuestion());
             chosenAnswer = sc.nextLine().charAt(0);
             chosenAnswer = Character.toLowerCase(chosenAnswer);
+
             if (chosenAnswer == questionList[i].getAnswer()) {
+               correctAnswers++;
+               System.out.println("✅ Correct!");
                if (questionList[i].getDifficultyLevel() <= 3) {
-                  count += 1;
+                  score += 1;
                } else if (questionList[i].getDifficultyLevel() <= 6) {
-                  count += 3;
+                  score += 3;
                } else {
-                  count += 5;
+                  score += 5;
                }
             } else {
+               System.out.println("❌ Wrong! The correct answer was " +
+                     questionList[i].getAnswer());
                if (questionList[i].getDifficultyLevel() <= 3) {
-                  count -= 1;
+                  score -= 1;
                } else if (questionList[i].getDifficultyLevel() <= 6) {
-                  count -= 3;
+                  score -= 3;
                } else {
-                  count -= 5;
+                  score -= 5;
                }
             }
          }
       }
 
-      return count;
+      return new TriviaResult(score, correctAnswers, totalQuestions);
    }
 
-   public int runGame(ArrayList<Functional> items) {
-      for (Functional f: items) {
-         //If user uses luck item, decreases difficulty.
-         if (f instanceof Luck){
-            f.activate();
-            if (getDifficulty() > 3){
-               setDifficulty(getDifficulty() -2);
-            }else{
-               setDifficulty(1);
-            }
-            //If user uses ticketmultiplier item, increases the ticket multiplier
-            //And by extension the num of tickets they win
-         } else if (f instanceof TicketMultiplier){
-            f.activate();
-            ticketMultiplier = TicketMultiplier.MULTIPLIER;
-            //If any other item is used, states that the item is unusable
-         } else{
-            System.out.println("Sorry, you can't use this power up for Diceopoly.");
-         }
+   /**
+    * Calculate performance score based on trivia results
+    */
+   private double calculatePerformanceScore(TriviaResult result) {
+      if (result.totalQuestions == 0) {
+         return 0.0;
       }
 
+      // Base score from correct answers percentage (0.0 to 0.7)
+      double accuracyScore = (double) result.correctAnswers / result.totalQuestions * 0.7;
 
+      // Bonus for positive total score (0.0 to 0.2)
+      double scoreBonus = 0.0;
+      if (result.score > 0) {
+         // Normalize score bonus based on maximum possible score
+         int maxPossibleScore = result.totalQuestions *
+               (getDifficulty() <= 3 ? 1 : getDifficulty() <= 6 ? 3 : 5);
+         scoreBonus = Math.min(0.2, (double) result.score / maxPossibleScore * 0.2);
+      }
 
+      // Perfect score bonus (0.0 to 0.1)
+      double perfectBonus = (result.correctAnswers == result.totalQuestions) ? 0.1 : 0.0;
 
-
-
-
-
-
-      int originalReward = super.getTicketReward();
-
-      System.out.println("Welcome to Trivia!");
-      System.out.println("Your calculated difficulty is " + getDifficulty() + ". Here are your 3 questions:");
-
-      int gameOutcome = promptQuestion();
-      //Runs the game, then sets ticket reward to be the base ticket reward, plus the tickets earned
-      //by the game, all multiplied by the ticket multiplier
-      setTicketReward((getTicketReward() + promptQuestion())*ticketMultiplier);
-
-      System.out.printf("Game Over! You've earned %d tickets!", getTicketReward());
-
-      return getTicketReward();
+      return Math.max(0.0, accuracyScore + scoreBonus + perfectBonus);
    }
+
+   // Remove the old promptQuestion method since we replaced it with
+   // runTriviaQuestions
+   // public int promptQuestion() { ... }
 
    public static void main(String[] args) {
       Trivia game = new Trivia(3, "Trivia", 5, 2, 10);

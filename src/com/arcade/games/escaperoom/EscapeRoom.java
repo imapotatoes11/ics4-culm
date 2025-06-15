@@ -1,31 +1,4 @@
-//public class EscapeRoom extends Game {
-//   public static final int STAGES = 4;
-//   private int currentStage;
-//   private char chosenOption;
-//   private static final int QUESTION_INDEX = 0;
-//   private static final int CORRECT_ANS_INDEX = 1;
-//   private String[][] scenario = {{"question", "ans1", "ans2", "ans3"}};
-//
-//   private static String[] shuffleAnswers (String[] array) {
-//      String[] copy = System.arraycopy(array);
-//      Random random = new Random();
-//      int r1, r2, r3, r4;
-//      r1 = rand.nextInt(1, array.length);
-//      r2 = rand.nextInt(1, array.length);
-//      r3 = rand.nextInt(1, array.length);
-//      r4 = rand.nextInt(1, array.length);
-//
-//      String tmp = copy[r1];
-//      copy[r1] = copy[r2];
-//      copy[r2] = tmp;
-//
-//      tmp = copy[r3];
-//      copy[r3] = copy[r4];
-//      copy[r4] = tmp;
-//   }
-//
-//}
-package com.arcade.escaperoom;
+package com.arcade.games.escaperoom;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -54,8 +27,14 @@ public class EscapeRoom extends Game {
     private boolean isDoorUnlocked = false;
     private boolean isSafeOpened = false;
     private int attemptsLeft = 3; // For the riddle
-
     private int ticketMultiplier = 1;
+
+    // Performance tracking variables
+    private int totalActions = 0;
+    private int riddleAttemptsUsed = 0;
+    private boolean usedExtraLife = false;
+    private long startTime;
+    private long endTime;
 
     /**
      * Default constructor for the EscapeRoom game.
@@ -84,10 +63,12 @@ public class EscapeRoom extends Game {
      * until the game is won or the player decides to quit.
      *
      * @param useItems A list of functional items the player wants to use.
-     * @return The number of tickets won (a fixed amount for winning, 0 otherwise).
+     * @return The number of tickets won based on performance.
      */
     @Override
     public int runGame(ArrayList<Functional> useItems) {
+        startTime = System.currentTimeMillis();
+
         // Process items at the start of the game
         for (Functional item : useItems) {
             if (item instanceof Luck && item.getNumUses() > 0) {
@@ -123,6 +104,8 @@ public class EscapeRoom extends Game {
 
             String choice = scanner.nextLine();
             System.out.println(); // Add a newline for better readability
+
+            totalActions++; // Track player actions for performance
 
             switch (choice) {
                 case "1":
@@ -207,6 +190,8 @@ public class EscapeRoom extends Game {
             while (attemptsLeft > 0) {
                 System.out.print("Your answer: ");
                 String answer = scanner.nextLine().trim().toLowerCase();
+                riddleAttemptsUsed++;
+
                 if (answer.contains("painting")) {
                     System.out.println(Bcolors.GREEN
                             + "Correct! As you speak the word, you hear a faint 'click' from the wall where the painting hangs."
@@ -226,6 +211,7 @@ public class EscapeRoom extends Game {
                             if (item instanceof ExtraLife && item.getNumUses() > 0) {
                                 item.setNumUses(item.getNumUses() - 1);
                                 this.attemptsLeft = 3; // Reset attempts
+                                this.usedExtraLife = true;
                                 System.out.println(Bcolors.YELLOW
                                         + "Just as you're about to give up, a surge of determination fills you. An Extra Life is consumed!"
                                         + Bcolors.ENDC);
@@ -306,29 +292,85 @@ public class EscapeRoom extends Game {
     }
 
     /**
+     * Calculate performance score based on various factors
+     * 
+     * @return Performance score from 0.0 to 1.0
+     */
+    private double calculatePerformanceScore() {
+        double score = 0.0;
+
+        // Base completion score (0.4 for completing the game)
+        score += 0.4;
+
+        // Efficiency score based on total actions (0.0 to 0.3)
+        // Fewer actions = better performance
+        int maxActions = 15; // Reasonable number of actions to complete
+        double efficiencyScore = Math.max(0.0, 1.0 - (double) totalActions / maxActions) * 0.3;
+        score += efficiencyScore;
+
+        // Riddle solving efficiency (0.0 to 0.2)
+        if (isSafeOpened) {
+            // Better score for solving riddle with fewer attempts
+            double riddleEfficiency = Math.max(0.0, 1.0 - (double) riddleAttemptsUsed / 3.0) * 0.2;
+            score += riddleEfficiency;
+        }
+
+        // Time bonus (0.0 to 0.1)
+        // Complete faster = better score
+        long gameTime = endTime - startTime;
+        long maxReasonableTime = 300000; // 5 minutes in milliseconds
+        double timeBonus = Math.max(0.0, 1.0 - (double) gameTime / maxReasonableTime) * 0.1;
+        score += timeBonus;
+
+        // Penalty for using Extra Life (-0.1)
+        if (usedExtraLife) {
+            score -= 0.1;
+        }
+
+        // Ensure score is between 0.0 and 1.0
+        return Math.max(0.0, Math.min(1.0, score));
+    }
+
+    /**
      * Awards the player tickets for winning and returns the amount.
      *
      * @param useItems The list of items to find and consume the TicketMultiplier.
      * @return The number of tickets won.
      */
     private int winGame(ArrayList<Functional> useItems) {
+        endTime = System.currentTimeMillis();
+
         System.out.println(Bcolors.YELLOW
                 + "\nCongratulations! You've solved the puzzle and escaped the Haunted Mansion!" + Bcolors.ENDC);
 
-        int finalReward = getTicketReward();
+        // Calculate performance-based ticket reward
+        double performanceScore = calculatePerformanceScore();
+        int baseTickets = calculateTicketReward(performanceScore);
 
+        // Apply ticket multiplier if used
+        int finalTickets = baseTickets;
         if (this.ticketMultiplier > 1) {
             for (Functional item : useItems) {
                 if (item instanceof TicketMultiplier && item.getNumUses() > 0) {
                     item.setNumUses(item.getNumUses() - 1);
+                    finalTickets *= this.ticketMultiplier;
+                    System.out.println(Bcolors.GREEN + "Your Ticket Multiplier doubles your reward!" + Bcolors.ENDC);
                     break;
                 }
             }
-            finalReward *= this.ticketMultiplier;
-            System.out.println(Bcolors.GREEN + "Your Ticket Multiplier doubles your reward!" + Bcolors.ENDC);
         }
 
-        System.out.println("You've been awarded " + Bcolors.GREEN + finalReward + " tickets!" + Bcolors.ENDC);
-        return finalReward;
+        // Display performance stats
+        System.out.println(Bcolors.CYAN + "\n=== PERFORMANCE SUMMARY ===" + Bcolors.ENDC);
+        System.out.println("Actions taken: " + totalActions);
+        System.out.println("Riddle attempts: " + riddleAttemptsUsed + "/" + (riddleAttemptsUsed + attemptsLeft));
+        System.out.println("Time taken: " + ((endTime - startTime) / 1000) + " seconds");
+        if (usedExtraLife) {
+            System.out.println(Bcolors.YELLOW + "Extra Life used" + Bcolors.ENDC);
+        }
+        System.out.println("Performance score: " + String.format("%.1f%%", performanceScore * 100));
+
+        System.out.println("You've been awarded " + Bcolors.GREEN + finalTickets + " tickets!" + Bcolors.ENDC);
+        return finalTickets;
     }
 }

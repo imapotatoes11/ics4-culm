@@ -50,7 +50,7 @@ public class BlackJack extends Game {
     private static final String STYLE_END = Bcolors.ENDC;
 
     public BlackJack() {
-        super(1, "Blackjack", 1, 10, 20);
+        super(1, "Blackjack", 10, 10, 20);
         this.random = new Random();
     }
 
@@ -305,21 +305,52 @@ public class BlackJack extends Game {
             System.out.println(Bcolors.OKBLUE + "\nDealer's hand value: " + dealerValue + Bcolors.ENDC);
         }
 
+        // Calculate performance score and tickets
+        int ticketsWon = 0;
         if (playerValue > 21) {
             System.out.println(STYLE_ERROR + Bcolors.BOLD + "You busted! Dealer wins." + STYLE_END);
+            ticketsWon = 0; // No tickets for busting
         } else if (dealerValue > 21 || playerValue > dealerValue) {
             System.out.println(STYLE_TITLE + Bcolors.BOLD + "You win!" + STYLE_END);
+
+            // Calculate performance score based on how well the player did
+            double performanceScore = 0.5; // Base winning score
+
+            // Bonus for getting 21
+            if (playerValue == 21) {
+                performanceScore += 0.3;
+            }
+
+            // Bonus for beating dealer by a larger margin
+            if (dealerValue <= 21) {
+                int margin = playerValue - dealerValue;
+                performanceScore += Math.min(0.2, margin * 0.05); // Up to 0.2 bonus for large margins
+            } else {
+                // Extra bonus for dealer busting
+                performanceScore += 0.2;
+            }
+
+            ticketsWon = calculateTicketReward(performanceScore);
+
         } else if (playerValue < dealerValue) {
             System.out.println(STYLE_ERROR + Bcolors.BOLD + "Dealer wins!" + STYLE_END);
+            ticketsWon = 0; // No tickets for losing
         } else {
             System.out.println(STYLE_WARNING + Bcolors.BOLD + "It's a tie!" + STYLE_END);
+            // Give small reward for tie
+            ticketsWon = calculateTicketReward(0.25);
         }
         System.out.println(headerStyle + "==============================" + STYLE_END);
 
-        System.out.println("\nYou have earned " + Bcolors.BOLD
-                + (playerWon ? (Bcolors.GREEN + this.getTicketReward()) : (Bcolors.RED + "0")) + Bcolors.ENDC
-                + " tickets!");
-        return playerWon ? this.getTicketReward() : 0; // Return ticket reward if player won
+        if (ticketsWon > 0) {
+            System.out.println("\nYou have earned " + Bcolors.BOLD + Bcolors.GREEN +
+                    ticketsWon + Bcolors.ENDC + " tickets!");
+        } else {
+            System.out.println("\nYou earned " + Bcolors.BOLD + Bcolors.RED +
+                    "0" + Bcolors.ENDC + " tickets this round.");
+        }
+
+        return ticketsWon;
     }
 
 }

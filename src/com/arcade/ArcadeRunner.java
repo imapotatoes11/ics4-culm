@@ -40,6 +40,7 @@ public class ArcadeRunner {
         boolean loggedIn = false;
 
         while (!loggedIn) {
+            System.out.println("\n\n=== ARCADE LOGIN ===");
             System.out.println("Welcome to Arcade!");
             System.out.println("Would you like to:");
             System.out.println("  1. Log in as a user");
@@ -109,21 +110,21 @@ public class ArcadeRunner {
      * Demonstrates: Admin interface, player management
      */
     private static void runAdminMenu(ArcadeManager arcadeManager, Scanner sc) {
-        System.out.println("\n=== ADMIN PANEL ===");
+        System.out.println("\n\n=== ARCADE > ADMIN PANEL ===");
         System.out.println("Welcome Administrator, " + arcadeManager.getPlayer().getUsername() + "!");
 
         boolean running = true;
         do {
-            System.out.println("\n=== ADMIN MENU ===");
-            System.out.println("1. View all players");
-            System.out.println("2. View players sorted by username");
-            System.out.println("3. View players sorted by age");
-            System.out.println("4. Search player by username (Binary Search)");
-            System.out.println("5. Search players by age range (Linear Search)");
-            System.out.println("6. Search players by name");
-            System.out.println("7. Remove player");
-            System.out.println("8. View player statistics");
-            System.out.println("9. Log out");
+            System.out.println("\n\n=== ARCADE > ADMIN MENU ===");
+            System.out.println("  1. View all players");
+            System.out.println("  2. View players sorted by username");
+            System.out.println("  3. View players sorted by age");
+            System.out.println("  4. Search player by username (Binary Search)");
+            System.out.println("  5. Search players by age range (Linear Search)");
+            System.out.println("  6. Search players by name");
+            System.out.println("  7. Remove player");
+            System.out.println("  8. View player statistics");
+            System.out.println("  9. Log out");
             System.out.print("Enter an option: ");
 
             try {
@@ -201,15 +202,19 @@ public class ArcadeRunner {
      * Regular user menu with game and profile functions
      */
     private static void runUserMenu(ArcadeManager arcadeManager, Scanner sc) {
+        System.out.println("\n\n=== ARCADE > USER DASHBOARD ===");
         System.out.println("Welcome to the Arcade, " + arcadeManager.getPlayer().getUsername() + "!");
         boolean running = true;
         do {
-            System.out.println("\n=== ARCADE MENU ===");
+            System.out.println("\n\n=== ARCADE > MAIN MENU ===");
             System.out.println("What would you like to do?");
-            System.out.println("1. View your profile");
-            System.out.println("2. Play a game");
-            System.out.println("3. View items/achievements");
-            System.out.println("4. Log out");
+            System.out.println("  1. View your profile");
+
+            System.out.println("  2. Play a game");
+
+            System.out.println("  3. View items/achievements");
+
+            System.out.println("  4. Log out");
             System.out.print("Enter an option: ");
 
             try {
@@ -244,11 +249,16 @@ public class ArcadeRunner {
     private static void viewProfile(ArcadeManager arcadeManager) {
         Player player = arcadeManager.getPlayer();
 
-        System.out.println("\n=== YOUR PROFILE ===");
+        System.out.println("\n\n=== ARCADE > MAIN MENU > YOUR PROFILE ===");
         System.out.println("Username: " + player.getUsername());
         System.out.println("Name: " + player.getName());
         System.out.println("Age: " + player.getAge());
         System.out.println("Achievements: " + player.getAchievements().size());
+
+        // Display wallet information
+        System.out.println("\n💳 WALLET:");
+        System.out.println("  Tokens: " + player.getWallet().getTokens());
+        System.out.println("  Tickets: " + player.getWallet().getTickets());
 
         // Calculate achievement score using factorial (demonstrates recursion)
         int achievementScore = arcadeManager.calculateFactorial(Math.min(player.getAchievements().size(), 5));
@@ -268,14 +278,34 @@ public class ArcadeRunner {
      */
     private static void playGame(ArcadeManager arcadeManager, Scanner sc) {
         List<Game> games = arcadeManager.getGames();
+        Player player = arcadeManager.getPlayer();
 
-        System.out.println("\n=== AVAILABLE GAMES ===");
+        System.out.println("\n\n=== ARCADE > MAIN MENU > GAMES ===");
+        System.out.println("💳 Your balance: " + player.getWallet().getTokens() + " tokens, " +
+                player.getWallet().getTickets() + " tickets");
+        System.out.println("🎯 Difficulty is automatically adjusted based on your age (" +
+                arcadeManager.getPlayer().getAge() + ")");
+        System.out.println("   Players aged 20-30 get full difficulty; others get reduced difficulty.\n");
+
         for (int i = 0; i < games.size(); i++) {
             Game game = games.get(i);
-            System.out.println((i + 1) + ". " + game.getTitle() +
-                    " (Difficulty: " + game.getDifficulty() +
-                    ", Tokens: " + game.getRequiredTokens() +
-                    ", Reward: " + game.getTicketReward() + ")");
+            // Calculate what the adjusted difficulty would be for display
+            int originalDifficulty = game.getDifficulty();
+            int adjustedDifficulty = arcadeManager.calculateAgeBasedDifficulty(originalDifficulty,
+                    arcadeManager.getPlayer().getAge());
+
+            String difficultyDisplay = (adjustedDifficulty != originalDifficulty)
+                    ? originalDifficulty + "→" + adjustedDifficulty
+                    : String.valueOf(originalDifficulty);
+
+            // Check if player can afford the game
+            boolean canAfford = arcadeManager.canPlayerAffordGame(game);
+            String affordabilityIndicator = canAfford ? "✅" : "❌";
+
+            System.out.println("    " + (i + 1) + ". " + affordabilityIndicator + " " + game.getTitle() +
+                    " (Difficulty: " + difficultyDisplay +
+                    ", Cost: " + game.getRequiredTokens() + " tokens" +
+                    ", Reward: " + game.getTicketRewardRange() + " tickets)");
         }
 
         System.out.print("Select a game (1-" + games.size() + ") or 0 to go back: ");
@@ -288,13 +318,35 @@ public class ArcadeRunner {
 
             if (choice >= 1 && choice <= games.size()) {
                 Game selectedGame = games.get(choice - 1);
+
+                // Check if player can afford the game
+                if (!arcadeManager.canPlayerAffordGame(selectedGame)) {
+                    System.out.println("❌ You don't have enough tokens to play " + selectedGame.getTitle() + "!");
+                    System.out.println("   Required: " + selectedGame.getRequiredTokens() + " tokens");
+                    System.out.println("   You have: " + player.getWallet().getTokens() + " tokens");
+                    return;
+                }
+
+                System.out.println("\n💰 This game costs " + selectedGame.getRequiredTokens() + " tokens.");
+                System.out.print("Do you want to proceed? (y/n): ");
+                String confirm = sc.nextLine().toLowerCase();
+
+                if (!confirm.startsWith("y")) {
+                    System.out.println("Game cancelled.");
+                    return;
+                }
+
+                // Apply age-based difficulty adjustment before starting the game
+                arcadeManager.adjustGameDifficultyForCurrentPlayer(selectedGame);
+
                 System.out.println("\nStarting " + selectedGame.getTitle() + "...");
 
                 // Polymorphism: calling runGame on different game types
                 ArrayList<Functional> items = new ArrayList<>(); // Empty items list for now
                 int ticketsWon = selectedGame.runGame(items);
 
-                System.out.println("\nGame completed! You won " + ticketsWon + " tickets!");
+                // Process the transaction (deduct tokens, award tickets)
+                arcadeManager.processGameTransaction(selectedGame, ticketsWon);
 
                 // Award achievement for playing games
                 Achievement gameAchievement = new Achievement("Game Player",
@@ -317,31 +369,58 @@ public class ArcadeRunner {
 
         boolean viewing = true;
         while (viewing) {
-            System.out.println("\n=== ITEMS & ACHIEVEMENTS ===");
-            System.out.println("1. View all achievements");
-            System.out.println("2. Sort achievements alphabetically");
-            System.out.println("3. Search for specific achievement");
-            System.out.println("4. Back to main menu");
+            System.out.println("\n\n=== ARCADE > MAIN MENU > ITEMS & ACHIEVEMENTS ===");
+            System.out.println("    1. View wallet & balance");
+            System.out.println("    2. View all achievements");
+            System.out.println("    3. Sort achievements alphabetically");
+            System.out.println("    4. Search for specific achievement");
+            System.out.println("    5. Back to main menu");
             System.out.print("Enter an option: ");
 
             try {
                 int choice = Integer.parseInt(sc.nextLine());
                 switch (choice) {
                     case 1:
+                        System.out.println("\n\n=== ARCADE > MAIN MENU > ITEMS & ACHIEVEMENTS > WALLET ===");
+                        System.out.println("💳 WALLET BALANCE:");
+                        System.out.println("   Tokens: " + player.getWallet().getTokens());
+                        System.out.println("   Tickets: " + player.getWallet().getTickets());
+
+                        if (player.getWallet().getPowerups() != null && !player.getWallet().getPowerups().isEmpty()) {
+                            System.out.println("\n🎮 POWERUPS:");
+                            for (Functional powerup : player.getWallet().getPowerups()) {
+                                System.out.println("   - " + powerup.getName() + " (Uses: " + powerup.getNumUses() +
+                                        ", Price: " + powerup.getPrice() + " tickets)");
+                            }
+                        } else {
+                            System.out.println("\n🎮 POWERUPS: None");
+                        }
+
+                        if (player.getWallet().getTrophies() != null && !player.getWallet().getTrophies().isEmpty()) {
+                            System.out.println("\n🏆 TROPHIES:");
+                            for (Achievement trophy : player.getWallet().getTrophies()) {
+                                System.out.println("   - " + trophy.getName() + ": " + trophy.getDescription());
+                            }
+                        } else {
+                            System.out.println("\n🏆 TROPHIES: None");
+                        }
+                        break;
+                    case 2:
                         List<Achievement> achievements = player.getAchievements();
                         if (achievements.isEmpty()) {
                             System.out.println("You have no achievements yet. Play some games to earn them!");
                         } else {
-                            System.out.println("\n=== YOUR ACHIEVEMENTS ===");
+                            System.out.println("\n\n=== ARCADE > MAIN MENU > ITEMS & ACHIEVEMENTS > VIEW ALL ===");
                             for (Achievement achievement : achievements) {
-                                System.out.println("- " + achievement.getName() + ": " + achievement.getDescription());
+                                System.out.println(
+                                        "      - " + achievement.getName() + ": " + achievement.getDescription());
                             }
                         }
                         break;
-                    case 2:
+                    case 3:
                         player.sortAchievements(); // Uses bubble sort from Player class
                         break;
-                    case 3:
+                    case 4:
                         System.out.print("Enter achievement name to search: ");
                         String searchName = sc.nextLine();
                         Achievement found = player.findAchievementByName(searchName);
@@ -351,7 +430,7 @@ public class ArcadeRunner {
                             System.out.println("Achievement not found.");
                         }
                         break;
-                    case 4:
+                    case 5:
                         viewing = false;
                         break;
                     default:

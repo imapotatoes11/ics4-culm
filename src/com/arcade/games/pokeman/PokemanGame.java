@@ -42,7 +42,7 @@ public class PokemanGame extends Game {
     public PokemanGame() {
         // Default constructor with preset values
         // for testing purposes
-        super(2, "Pokeman Adventure", 5, 15, 50);
+        super(2, "Pokeman Adventure", 7, 15, 50);
         this.scanner = new Scanner(System.in);
     }
 
@@ -83,8 +83,11 @@ public class PokemanGame extends Game {
 
         initializeGame();
 
+        int battlesWon = 0;
+        int totalBattles = 4;
+
         // Battle through 4 enemies
-        battleLoop: for (int battleNumber = 1; battleNumber <= 4; battleNumber++) {
+        battleLoop: for (int battleNumber = 1; battleNumber <= totalBattles; battleNumber++) {
             Pokeman enemy = Pokeman.createEnemyPokeman(battleNumber, difficulty);
             displayBattleIntro(battleNumber, enemy);
 
@@ -103,28 +106,53 @@ public class PokemanGame extends Game {
                     }
                 }
                 displayDefeatScreen();
-                return 0;
+                return 0; // No tickets for losing
             }
 
+            battlesWon++;
             displayBattleVictory(battleNumber, enemy);
-            if (battleNumber < 4)
+            if (battleNumber < totalBattles)
                 healPlayerPokeman();
         }
 
-        // apply TicketMultiplier before awarding
-        int reward = this.getTicketReward();
+        // Calculate performance-based ticket reward
+        double performanceScore = calculatePerformanceScore(battlesWon, totalBattles);
+        int baseTickets = calculateTicketReward(performanceScore);
+
+        // apply TicketMultiplier after base calculation
+        int finalTickets = baseTickets;
         for (Functional item : useItems) {
             if (item instanceof TicketMultiplier && item.getNumUses() > 0) {
                 int mult = TicketMultiplier.MULTIPLIER;
-                reward *= mult;
+                finalTickets *= mult;
                 item.setNumUses(item.getNumUses() - 1);
                 System.out.println(STYLE_INFO + "Ticket Multiplier used! " +
                         "Your tickets x" + mult + STYLE_END);
             }
         }
 
-        displayVictoryScreen();
-        return reward;
+        displayVictoryScreen(finalTickets);
+        return finalTickets;
+    }
+
+    /**
+     * Calculate performance score based on battles won and remaining health
+     */
+    private double calculatePerformanceScore(int battlesWon, int totalBattles) {
+        // Base score from battles won (0.0 to 0.7)
+        double battleScore = (double) battlesWon / totalBattles * 0.7;
+
+        // Bonus for completing all battles (0.0 to 0.2)
+        double completionBonus = (battlesWon == totalBattles) ? 0.2 : 0.0;
+
+        // Health bonus: remaining health percentage (0.0 to 0.1)
+        double healthBonus = 0.0;
+        if (battlesWon == totalBattles && playerPokeman != null) {
+            double healthPercentage = (double) playerPokeman.getCurrentHp() / playerPokeman.getMaxHp();
+            healthBonus = healthPercentage * 0.1;
+        }
+
+        return battleScore + completionBonus + healthBonus;
     }
 
     private void displayGameIntro() {
@@ -225,6 +253,10 @@ public class PokemanGame extends Game {
     }
 
     private void displayVictoryScreen() {
+        displayVictoryScreen(this.getTicketReward());
+    }
+
+    private void displayVictoryScreen(int ticketsEarned) {
         System.out.println(STYLE_WIN_HEADER + "\n╔══════════════════════════════════════════════╗");
         System.out.println("║                  🏆 CHAMPION! 🏆               ║");
         System.out.println("╚══════════════════════════════════════════════╝" + STYLE_END);
@@ -236,9 +268,16 @@ public class PokemanGame extends Game {
         System.out.println();
         System.out.println(STYLE_INFO + "Battles won: 4/4" + STYLE_END);
         System.out.println(STYLE_INFO + "Status: POKEMAN CHAMPION!" + STYLE_END);
+
+        // Display health status for performance context
+        if (playerPokeman != null) {
+            System.out.println(STYLE_INFO + "Final HP: " + playerPokeman.getCurrentHp() + "/" +
+                    playerPokeman.getMaxHp() + STYLE_END);
+        }
+
         System.out.println();
         System.out.println(STYLE_WIN_HEADER + "You have earned " + Bcolors.BOLD +
-                this.getTicketReward() + " tickets!" + STYLE_END);
+                ticketsEarned + " tickets!" + STYLE_END);
         System.out.println(STYLE_WIN_HEADER + "══════════════════════════════════════════════" + STYLE_END);
     }
 
