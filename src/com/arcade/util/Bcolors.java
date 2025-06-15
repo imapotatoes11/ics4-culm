@@ -41,6 +41,7 @@ public class Bcolors {
     public static final String MAGENTA = "";// "\033[35m";
     public static final String CYAN = "";// "\033[36m";
     public static final String WHITE = "";// "\033[37m";
+    public static final String PURPLE = "";// "\033[35m"; // Alias for MAGENTA
 
     // Bright text colors
     public static final String BRIGHT_BLACK = "";// "\033[90m";

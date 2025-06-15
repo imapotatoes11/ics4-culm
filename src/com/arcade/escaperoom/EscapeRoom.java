@@ -25,12 +25,15 @@
 //   }
 //
 //}
-
 package com.arcade.escaperoom;
 
+import java.util.ArrayList;
 import java.util.Scanner;
-import com.arcade.player.Player;
 import com.arcade.games.Game;
+import com.arcade.item.ExtraLife;
+import com.arcade.item.Functional;
+import com.arcade.item.Luck;
+import com.arcade.item.TicketMultiplier;
 import com.arcade.util.Bcolors;
 
 /**
@@ -38,12 +41,12 @@ import com.arcade.util.Bcolors;
  * puzzles to "escape".
  * This class contains the logic and narrative for a specific escape room
  * scenario.
+ * It now correctly extends the Game class and implements item functionality.
  *
  * @author Gemini
  */
 public class EscapeRoom extends Game {
 
-    private Player player;
     private Scanner scanner = new Scanner(System.in);
 
     // Game state variables
@@ -52,13 +55,27 @@ public class EscapeRoom extends Game {
     private boolean isSafeOpened = false;
     private int attemptsLeft = 3; // For the riddle
 
+    private int ticketMultiplier = 1;
+
     /**
-     * Constructor for the EscapeRoom game.
-     * 
-     * @param player The player who will be playing the game.
+     * Default constructor for the EscapeRoom game.
      */
-    public EscapeRoom(Player player) {
-        this.player = player;
+    public EscapeRoom() {
+        // id, title, difficulty, requiredTokens, ticketReward
+        super(5, "Haunted Mansion Escape", 5, 25, 250);
+    }
+
+    /**
+     * Constructor for the EscapeRoom game with custom parameters.
+     *
+     * @param id             The game's ID.
+     * @param title          The game's title.
+     * @param difficulty     The game's difficulty level.
+     * @param requiredTokens The tokens required to play.
+     * @param ticketReward   The base ticket reward for winning.
+     */
+    public EscapeRoom(int id, String title, int difficulty, int requiredTokens, int ticketReward) {
+        super(id, title, difficulty, requiredTokens, ticketReward);
     }
 
     /**
@@ -66,11 +83,29 @@ public class EscapeRoom extends Game {
      * It presents the scenario to the player and processes their input
      * until the game is won or the player decides to quit.
      *
-     * @param player The current player.
+     * @param useItems A list of functional items the player wants to use.
      * @return The number of tickets won (a fixed amount for winning, 0 otherwise).
      */
     @Override
-    public double play(Player player) {
+    public int runGame(ArrayList<Functional> useItems) {
+        // Process items at the start of the game
+        for (Functional item : useItems) {
+            if (item instanceof Luck && item.getNumUses() > 0) {
+                int factor = ((Luck) item).getDifficultyDecreaseFactor();
+                this.attemptsLeft += factor;
+                item.setNumUses(item.getNumUses() - 1);
+                System.out.println(Bcolors.GREEN
+                        + "A sense of clarity washes over you. You feel luckier! (Riddle attempts increased by "
+                        + factor + ")" + Bcolors.ENDC);
+            } else if (item instanceof TicketMultiplier && item.getNumUses() > 0) {
+                this.ticketMultiplier = TicketMultiplier.MULTIPLIER;
+                System.out.println(Bcolors.GREEN + "Your potential rewards feel greater! (Ticket Multiplier is active)"
+                        + Bcolors.ENDC);
+                // We'll consume this item's use at the end if the player wins
+            }
+            // ExtraLife is handled when the player fails a critical task
+        }
+
         printIntroduction();
 
         while (true) {
@@ -91,7 +126,7 @@ public class EscapeRoom extends Game {
 
             switch (choice) {
                 case "1":
-                    examineBookshelf();
+                    examineBookshelf(useItems);
                     break;
                 case "2":
                     examineFireplace();
@@ -99,8 +134,7 @@ public class EscapeRoom extends Game {
                 case "3":
                     checkDoor();
                     if (isDoorUnlocked) {
-                        // If the door is unlocked, the game is won.
-                        return winGame();
+                        return winGame(useItems);
                     }
                     break;
                 case "4":
@@ -155,8 +189,10 @@ public class EscapeRoom extends Game {
     /**
      * Handles the logic for when the player examines the bookshelf.
      * Contains a riddle that reveals the location of a hidden safe.
+     * 
+     * @param useItems List of items to check for Extra Life.
      */
-    private void examineBookshelf() {
+    private void examineBookshelf(ArrayList<Functional> useItems) {
         System.out.println("The bookshelf is filled with ancient, leather-bound books.");
         System.out.println("One book, titled 'Riddles of the Dark', seems to call to you.");
         System.out.println("Do you want to read it? (yes/no)");
@@ -180,11 +216,29 @@ public class EscapeRoom extends Game {
                 } else {
                     attemptsLeft--;
                     if (attemptsLeft > 0) {
-                        System.out.println(Bcolors.RED + "Nothing happens. You have " + attemptsLeft + " attempts left."
-                                + Bcolors.ENDC);
+                        System.out
+                                .println(Bcolors.RED + "Nothing happens. You have " + attemptsLeft + " attempt(s) left."
+                                        + Bcolors.ENDC);
                     } else {
-                        System.out.println(
-                                Bcolors.RED + "The book snaps shut! The riddle's magic has faded." + Bcolors.ENDC);
+                        // Check for Extra Life
+                        boolean extraLifeUsed = false;
+                        for (Functional item : useItems) {
+                            if (item instanceof ExtraLife && item.getNumUses() > 0) {
+                                item.setNumUses(item.getNumUses() - 1);
+                                this.attemptsLeft = 3; // Reset attempts
+                                System.out.println(Bcolors.YELLOW
+                                        + "Just as you're about to give up, a surge of determination fills you. An Extra Life is consumed!"
+                                        + Bcolors.ENDC);
+                                System.out.println(
+                                        Bcolors.GREEN + "Your riddle attempts have been restored!" + Bcolors.ENDC);
+                                extraLifeUsed = true;
+                                break;
+                            }
+                        }
+                        if (!extraLifeUsed) {
+                            System.out.println(
+                                    Bcolors.RED + "The book snaps shut! The riddle's magic has faded." + Bcolors.ENDC);
+                        }
                     }
                 }
             }
@@ -253,15 +307,28 @@ public class EscapeRoom extends Game {
 
     /**
      * Awards the player tickets for winning and returns the amount.
-     * 
+     *
+     * @param useItems The list of items to find and consume the TicketMultiplier.
      * @return The number of tickets won.
      */
-    private double winGame() {
-        double ticketsWon = 250; // A handsome prize for your intellect!
-        System.out.println(Bcolors.YELLOW + "\nCongratulations, " + player.getName()
-                + "! You've solved the puzzle and escaped the Haunted Mansion!" + Bcolors.ENDC);
-        System.out.println("You've been awarded " + Bcolors.GREEN + ticketsWon + " tickets!" + Bcolors.ENDC);
-        player.getWallet().addTickets(ticketsWon);
-        return ticketsWon;
+    private int winGame(ArrayList<Functional> useItems) {
+        System.out.println(Bcolors.YELLOW
+                + "\nCongratulations! You've solved the puzzle and escaped the Haunted Mansion!" + Bcolors.ENDC);
+
+        int finalReward = getTicketReward();
+
+        if (this.ticketMultiplier > 1) {
+            for (Functional item : useItems) {
+                if (item instanceof TicketMultiplier && item.getNumUses() > 0) {
+                    item.setNumUses(item.getNumUses() - 1);
+                    break;
+                }
+            }
+            finalReward *= this.ticketMultiplier;
+            System.out.println(Bcolors.GREEN + "Your Ticket Multiplier doubles your reward!" + Bcolors.ENDC);
+        }
+
+        System.out.println("You've been awarded " + Bcolors.GREEN + finalReward + " tickets!" + Bcolors.ENDC);
+        return finalReward;
     }
 }
