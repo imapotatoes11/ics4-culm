@@ -49,6 +49,8 @@ public class ArcadeManager {
         if (p != null) {
             // Player exists, check password
             if (p.getPassword().equals(password)) {
+                // set the current player
+                this.player = p;
                 return LoginStatus.SUCCESS;
             } else {
                 return LoginStatus.INCORRECT_PASSWORD;
@@ -184,11 +186,12 @@ public class ArcadeManager {
                     continue;
                 }
 
-                Player p = new Player();
-                p.setUsername(username.toLowerCase());
-                p.setPassword(password);
-                p.setAge(age);
-                p.setName(name);
+                // Player p = new Player();
+                // p.setUsername(username.toLowerCase());
+                // p.setPassword(password);
+                // p.setAge(age);
+                // p.setName(name);
+                Player p = new Player(name, username.toLowerCase(), password, age);
                 players.add(p);
                 System.out.println(
                         "Found player: " + p.getUsername() + ", Age: " + p.getAge() + ", Name: " + p.getName());

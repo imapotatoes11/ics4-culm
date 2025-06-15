@@ -35,6 +35,7 @@ public class ArcadeRunner {
         arcadeManager.loadFromFile();
 
         boolean loggedIn = false;
+        boolean admin = false;
 
         while (!loggedIn) {
             System.out.println("Welcome to Arcade!");
@@ -59,8 +60,12 @@ public class ArcadeRunner {
                     String password = new String(console.readPassword("Enter Password: "));
                     // hash password
                     String hashedPassword = generateSHA256(password);
+                    System.out.print("Enter your age: ");
+                    int age = Integer.parseInt(sc.nextLine());
+                    System.out.print("Enter your name: ");
+                    String name = sc.nextLine();
                     // Create a new player and add to the arcade manager
-                    Player newPlayer = new Player(username, hashedPassword);
+                    Player newPlayer = new Player(name, username.toLowerCase(), hashedPassword, age);
                     arcadeManager.addPlayer(newPlayer);
                     System.out.println("Account created successfully! You can now log in.");
                 }
@@ -87,6 +92,35 @@ public class ArcadeRunner {
                         break;
                 }
             }
+        }
+
+        if (admin) {
+            // custom admin menu here
+        } else {
+            System.out.println("Welcome to the Arcade, " + arcadeManager.getPlayer().getUsername() + "!");
+            boolean running = true;
+            do {
+                System.out.println("What would you like to do?");
+                System.out.println("1. View your profile");
+                System.out.println("2. Play a game");
+                System.out.println("3. View items/achievements");
+                System.out.println("4. Log out");
+                System.out.print("Enter an option: ");
+                int choice = Integer.parseInt(sc.nextLine());
+                switch (choice) {
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                    case 3:
+                        break;
+                    case 4:
+                        running = false;
+                        break;
+                    default:
+                        System.out.println("Invalid option, please try again.");
+                }
+            } while (running);
         }
     }
 

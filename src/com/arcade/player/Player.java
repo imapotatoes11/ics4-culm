@@ -12,13 +12,51 @@ import java.util.List;
 
 public class Player {
    private String name;
+   private String username;
+   private String password; // password is hashed sha-256
+   private int age;
    private List<Achievement> achievements = new ArrayList<>();
 
    public Player(String name) {
       this.name = name;
    }
 
-   //Adds achievement if the user doesn't already have that achievement
+   public Player(String name, String username, String password, int age) {
+      this.name = name;
+      this.username = username;
+      this.password = password; // should be hashed
+      this.age = age;
+   }
+
+   public String getUsername() {
+      return username;
+   }
+
+   public void setPassword(String password) {
+      this.password = password;
+   }
+
+   public String getPassword() {
+      return password;
+   }
+
+   public int getAge() {
+      return age;
+   }
+
+   public void setAge(int age) {
+      this.age = age;
+   }
+
+   public void setName(String name) {
+      this.name = name;
+   }
+
+   public void setUsername(String username) {
+      this.username = username;
+   }
+
+   // Adds achievement if the user doesn't already have that achievement
    public boolean addAchievement(Achievement ach) {
       for (Achievement a : achievements) {
          if (a.getName().equalsIgnoreCase(ach.getName())) {
@@ -29,13 +67,13 @@ public class Player {
       return true;
    }
 
-   //Sorts achievements
+   // Sorts achievements
    public void sortAchievements() {
       // Make a local array copy
       Achievement[] arr = achievements.toArray(new Achievement[0]);
       int n = arr.length;
 
-      //Bubble sort
+      // Bubble sort
       for (int pass = 0; pass < n - 1; pass++) {
          for (int i = 0; i < n - 1 - pass; i++) {
             if (arr[i].getName().compareToIgnoreCase(arr[i + 1].getName()) > 0) {
@@ -47,15 +85,14 @@ public class Player {
          }
       }
 
-      //Output
+      // Output
       System.out.println("Achievements by alphabetical order:");
       for (Achievement a : arr) {
          System.out.println("  " + a.getName());
       }
    }
 
-
-   //Searches for achivement by name
+   // Searches for achivement by name
    public Achievement findAchievementByName(String targetName) {
       for (Achievement a : achievements) {
          if (a.getName().equalsIgnoreCase(targetName)) {
@@ -65,8 +102,8 @@ public class Player {
       return null;
    }
 
-
-   //reads the file, finds the line after the players name, then adds the achivements
+   // reads the file, finds the line after the players name, then adds the
+   // achivements
    public void saveAchievementsToFile(String FILE) throws IOException {
       // Read all lines
       List<String> original = new ArrayList<>();
@@ -77,7 +114,7 @@ public class Player {
       }
       reader.close();
 
-      //Add achivements
+      // Add achivements
       List<String> output = new ArrayList<>();
       boolean seenName = false;
       boolean inserted = false;
@@ -97,7 +134,7 @@ public class Player {
          }
       }
 
-      //If name was seen but no colon after, add it
+      // If name was seen but no colon after, add it
       if (seenName && !inserted) {
          for (Achievement a : achievements) {
             output.add(a.getName() + ": " + a.getDescription());
