@@ -1,37 +1,47 @@
-/*
+/**
  * Item.java
  *
- * Date: 05 30, 2025
+ * base class for all items in the arcade system
+ * provides common functionality for all item types
+ * serves as parent class for achievements, functional items, etc.
  *
- * Copyright 2025 Kevin Wang
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy
- * of the license at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the license is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * license for the specific language governing permissions and limitations under
- * the license.
+ * date: jun 15, 2025
+ * author: kevin wang
  */
 package com.arcade.item;
 
+/**
+ * base class for all items in the arcade system
+ * defines common properties that all items share
+ * provides foundation for inheritance hierarchy
+ */
 public class Item {
-    private String name;
+    private String name; // display name of the item
 
+    /**
+     * constructor for creating an item with a name
+     * 
+     * @param name the display name of the item
+     */
     public Item(String name) {
         this.name = name;
     }
 
+    /**
+     * gets the name of the item
+     * 
+     * @return the item's name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * sets the name of the item
+     * 
+     * @param name the name to set
+     */
     public void setName(String name) {
         this.name = name;
     }
-
 }

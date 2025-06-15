@@ -1,21 +1,12 @@
-/*
+/**
  * Battle.java
  *
- * Date: 05 30, 2025
+ * manages turn-based combat between two pokemans
+ * handles player input, enemy ai, and battle flow
+ * provides difficulty-based ai behavior and visual battle interface
  *
- * Copyright 2025 Kevin Wang
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy
- * of the license at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the license is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * license for the specific language governing permissions and limitations under
- * the license.
+ * date: jun 15, 2025
+ * author: kevin wang
  */
 package com.arcade.games.pokeman;
 
@@ -23,15 +14,20 @@ import java.util.*;
 
 import com.arcade.util.Bcolors;
 
+/**
+ * manages turn-based battle mechanics between player and enemy pokemans
+ * handles user interface, ai decision making, and battle flow
+ * provides dynamic difficulty scaling for enemy behavior
+ */
 public class Battle {
-    private Pokeman player;
-    private Pokeman enemy;
-    private int turnNumber;
-    private int difficulty;
-    private Random random;
-    private Scanner scanner;
+    private Pokeman player; // the player's pokeman
+    private Pokeman enemy; // the enemy pokeman
+    private int turnNumber; // current turn counter for tracking battle progress
+    private int difficulty; // difficulty level affecting enemy ai behavior
+    private Random random; // random number generator for ai decisions
+    private Scanner scanner; // handles user input during battle
 
-    // Styling constants
+    // styling constants for consistent console output formatting
     private static final String STYLE_HEADER = Bcolors.BOLD + Bcolors.BRIGHT_CYAN;
     private static final String STYLE_INFO = Bcolors.OKCYAN;
     private static final String STYLE_WARNING = Bcolors.WARNING;
@@ -39,15 +35,28 @@ public class Battle {
     private static final String STYLE_ERROR = Bcolors.FAIL;
     private static final String STYLE_END = Bcolors.ENDC;
 
+    /**
+     * constructor for creating a battle between two pokemans
+     * 
+     * @param player     the player's pokeman
+     * @param enemy      the enemy pokeman
+     * @param difficulty the difficulty level (affects enemy ai behavior)
+     */
     public Battle(Pokeman player, Pokeman enemy, int difficulty) {
         this.player = player;
         this.enemy = enemy;
         this.difficulty = difficulty;
-        this.turnNumber = 1;
+        this.turnNumber = 1; // battles start at turn 1
         this.random = new Random();
         this.scanner = new Scanner(System.in);
     }
 
+    /**
+     * initiates and manages the main battle loop
+     * alternates between player and enemy turns until one is defeated
+     * 
+     * @return true if player wins, false if player loses
+     */
     public boolean startBattle() {
         System.out.println(STYLE_HEADER + "\n========================================");
         System.out.println("           BATTLE BEGINS!");
@@ -61,24 +70,24 @@ public class Battle {
         System.out.println("\nPress Enter to continue...");
         scanner.nextLine();
 
-        // Main battle loop
+        // main battle loop - continues until one pokeman is defeated
         while (!player.isDefeated() && !enemy.isDefeated()) {
             displayBattleScreen();
 
-            // Player's turn
+            // player's turn
             System.out.println(STYLE_SUCCESS + "\n--- YOUR TURN ---" + STYLE_END);
             if (playerTurn()) {
-                break; // Battle ended
+                break; // battle ended
             }
 
             if (enemy.isDefeated()) {
-                break; // Enemy defeated
+                break; // enemy defeated
             }
 
-            // Enemy's turn
+            // enemy's turn
             System.out.println(STYLE_ERROR + "\n--- ENEMY TURN ---" + STYLE_END);
             if (enemyTurn()) {
-                break; // Battle ended
+                break; // battle ended
             }
 
             turnNumber++;
@@ -89,8 +98,14 @@ public class Battle {
         return displayBattleResult();
     }
 
+    /**
+     * handles the player's turn including energy regeneration and move selection
+     * allows player to choose from available moves and execute them
+     * 
+     * @return true if battle should end, false to continue
+     */
     private boolean playerTurn() {
-        // Regenerate energy at start of turn
+        // regenerate energy at start of turn (standard pokeman battle mechanic)
         player.regenerateEnergy();
 
         ArrayList<Move> availableMoves = player.getAvailableMoves();
@@ -107,14 +122,20 @@ public class Battle {
             player.useMove(selectedMove, enemy);
         }
 
-        return false; // Battle continues
+        return false; // battle continues
     }
 
+    /**
+     * handles the enemy's turn with difficulty-based ai behavior
+     * enemy ai becomes smarter and more strategic at higher difficulties
+     * 
+     * @return true if battle should end, false to continue
+     */
     private boolean enemyTurn() {
-        // Regenerate energy at start of turn
+        // regenerate energy at start of turn
         enemy.regenerateEnergy();
 
-        // Simple AI: select a random available move
+        // simple ai: select a move based on difficulty level
         ArrayList<Move> availableMoves = enemy.getAvailableMoves();
 
         if (availableMoves.isEmpty()) {
@@ -125,9 +146,9 @@ public class Battle {
 
         Move selectedMove;
 
-        // Difficulty-based AI: higher difficulty = smarter move selection
+        // difficulty-based ai: higher difficulty = smarter move selection
         if (difficulty >= 7) {
-            // High difficulty: Always choose the highest damage move available
+            // high difficulty: always choose the highest damage move available
             selectedMove = availableMoves.get(0);
             for (Move move : availableMoves) {
                 if (move.getBaseDamage() > selectedMove.getBaseDamage()) {
@@ -135,7 +156,7 @@ public class Battle {
                 }
             }
         } else if (difficulty >= 4) {
-            // Medium difficulty: 70% chance for highest damage move, 30% random
+            // medium difficulty: 70% chance for highest damage move, 30% random
             if (random.nextDouble() < 0.7) {
                 selectedMove = availableMoves.get(0);
                 for (Move move : availableMoves) {
@@ -147,17 +168,21 @@ public class Battle {
                 selectedMove = availableMoves.get(random.nextInt(availableMoves.size()));
             }
         } else {
-            // Low difficulty: completely random move selection
+            // low difficulty: completely random move selection
             selectedMove = availableMoves.get(random.nextInt(availableMoves.size()));
         }
 
         enemy.useMove(selectedMove, player, difficulty);
 
-        return false; // Battle continues
+        return false; // battle continues
     }
 
+    /**
+     * displays the main battle interface with pokeman art and stats
+     * shows both pokemans side by side with health and energy bars
+     */
     private void displayBattleScreen() {
-        // Clear screen effect
+        // clear screen effect for better presentation
         System.out.println("\n".repeat(3));
 
         System.out.println(STYLE_HEADER + "===========================================");
@@ -165,15 +190,15 @@ public class Battle {
         System.out.println("===========================================" + STYLE_END);
         System.out.println();
 
-        // Display pokemans side by side
+        // display pokemans side by side with ascii art
         String[] playerArt = player.getAsciiArt().split("\n");
         String[] enemyArt = enemy.getAsciiArt().split("\n");
 
-        // Pokeman names
+        // pokeman names at the top
         System.out.printf("    %-20s          VS          %s\n",
                 player.getName().toUpperCase(), enemy.getName().toUpperCase());
 
-        // ASCII art side by side
+        // ascii art side by side (handles different art heights)
         int maxLines = Math.max(playerArt.length, enemyArt.length);
         for (int i = 0; i < maxLines; i++) {
             String leftSide = i < playerArt.length ? playerArt[i] : "                ";
@@ -183,7 +208,7 @@ public class Battle {
 
         System.out.println();
 
-        // Stats display
+        // stats display with visual bars
         System.out.print("HP: ");
         displayHpBar(player);
         System.out.printf("        HP: ");
@@ -199,87 +224,108 @@ public class Battle {
         System.out.println(STYLE_HEADER + "===========================================" + STYLE_END);
     }
 
+    /**
+     * displays a visual health bar for a pokeman
+     * uses colored block characters to show current vs maximum health
+     * 
+     * @param pokeman the pokeman whose health bar to display
+     */
     private void displayHpBar(Pokeman pokeman) {
-        int barLength = 12;
-        int filled = (int) ((double) pokeman.getCurrentHp() / pokeman.getMaxHp() * barLength);
+        int maxBarLength = 12; // length of the health bar in characters
+        int currentHp = pokeman.getCurrentHp();
+        int maxHp = pokeman.getMaxHp();
 
-        String color;
-        if (pokeman.getCurrentHp() > pokeman.getMaxHp() * 0.6) {
-            color = Bcolors.BRIGHT_GREEN;
-        } else if (pokeman.getCurrentHp() > pokeman.getMaxHp() * 0.3) {
-            color = Bcolors.BRIGHT_YELLOW;
-        } else {
-            color = Bcolors.BRIGHT_RED;
-        }
+        // calculate how much of the bar should be filled
+        int filledLength = (int) ((double) currentHp / maxHp * maxBarLength);
+        int emptyLength = maxBarLength - filledLength;
 
-        System.out.printf("%s%s%s%s %d/%d",
-                color, "█".repeat(filled),
-                Bcolors.BRIGHT_BLACK, "░".repeat(barLength - filled),
-                pokeman.getCurrentHp(), pokeman.getMaxHp());
-        System.out.print(Bcolors.ENDC);
+        // create visual bar with color coding
+        String colorCode = currentHp > maxHp * 0.6 ? Bcolors.BRIGHT_GREEN
+                : currentHp > maxHp * 0.3 ? Bcolors.BRIGHT_YELLOW : Bcolors.BRIGHT_RED;
+
+        System.out.print(colorCode + "█".repeat(filledLength) +
+                Bcolors.BRIGHT_BLACK + "░".repeat(emptyLength) + Bcolors.ENDC +
+                String.format(" %d/%d", currentHp, maxHp));
     }
 
+    /**
+     * displays a visual energy bar for a pokeman
+     * uses colored block characters to show current vs maximum energy
+     * 
+     * @param pokeman the pokeman whose energy bar to display
+     */
     private void displayEnergyBar(Pokeman pokeman) {
-        int barLength = 4;
-        int filled = (int) ((double) pokeman.getCurrentEnergy() / pokeman.getMaxEnergy() * barLength);
+        int maxBarLength = 6; // length of the energy bar in characters
+        int currentEnergy = pokeman.getCurrentEnergy();
+        int maxEnergy = pokeman.getMaxEnergy();
 
-        System.out.printf("%s%s%s%s %d/%d",
-                Bcolors.BRIGHT_BLUE, "█".repeat(filled),
-                Bcolors.BRIGHT_BLACK, "░".repeat(barLength - filled),
-                pokeman.getCurrentEnergy(), pokeman.getMaxEnergy());
-        System.out.print(Bcolors.ENDC);
+        // calculate how much of the bar should be filled
+        int filledLength = (int) ((double) currentEnergy / maxEnergy * maxBarLength);
+        int emptyLength = maxBarLength - filledLength;
+
+        // create visual bar with blue color scheme
+        System.out.print(Bcolors.BRIGHT_BLUE + "█".repeat(filledLength) +
+                Bcolors.BRIGHT_BLACK + "░".repeat(emptyLength) + Bcolors.ENDC +
+                String.format(" %d/%d", currentEnergy, maxEnergy));
     }
 
+    /**
+     * displays the menu of available moves for the player
+     * shows move names, energy costs, and descriptions
+     */
     private void displayMoveMenu() {
-        System.out.println(STYLE_INFO + "YOUR MOVES:" + STYLE_END);
-        ArrayList<Move> moves = player.getMoves();
+        ArrayList<Move> availableMoves = player.getAvailableMoves();
 
-        for (int i = 0; i < moves.size(); i++) {
-            Move move = moves.get(i);
-            String available = move.canAfford(player.getCurrentEnergy()) ? STYLE_SUCCESS : STYLE_ERROR;
-            System.out.printf("%s[%d] %s%s\n", available, i + 1, move.getDisplayString(), STYLE_END);
+        System.out.println(STYLE_INFO + "\nChoose your move:" + STYLE_END);
+        for (int i = 0; i < availableMoves.size(); i++) {
+            Move move = availableMoves.get(i);
+            System.out.printf("  %d. %s\n", i + 1, move.getDisplayString());
         }
+        System.out.print("Enter move number (1-" + availableMoves.size() + "): ");
     }
 
+    /**
+     * gets the player's move choice from user input
+     * validates input and returns the selected move
+     * 
+     * @return the selected move, or null if invalid input
+     */
     private Move getUserMoveChoice() {
-        ArrayList<Move> moves = player.getMoves();
+        ArrayList<Move> availableMoves = player.getAvailableMoves();
 
-        while (true) {
-            System.out.print(STYLE_WARNING + "\nChoose your move [1-" + moves.size() + "]: " + STYLE_END);
-            String input = scanner.nextLine().trim();
-
-            try {
-                int choice = Integer.parseInt(input);
-                if (choice >= 1 && choice <= moves.size()) {
-                    Move selectedMove = moves.get(choice - 1);
-                    if (selectedMove.canAfford(player.getCurrentEnergy())) {
-                        return selectedMove;
-                    } else {
-                        System.out.println(STYLE_ERROR + "Not enough energy for that move!" + STYLE_END);
-                    }
-                } else {
-                    System.out.println(STYLE_ERROR + "Invalid choice. Please enter a number between 1 and "
-                            + moves.size() + STYLE_END);
-                }
-            } catch (NumberFormatException e) {
-                System.out.println(STYLE_ERROR + "Please enter a valid number." + STYLE_END);
+        try {
+            int choice = Integer.parseInt(scanner.nextLine());
+            if (choice >= 1 && choice <= availableMoves.size()) {
+                return availableMoves.get(choice - 1);
+            } else {
+                System.out.println(STYLE_ERROR + "Invalid choice! Using first available move." + STYLE_END);
+                return availableMoves.get(0); // fallback to first move
             }
+        } catch (NumberFormatException e) {
+            System.out.println(STYLE_ERROR + "Invalid input! Using first available move." + STYLE_END);
+            return availableMoves.get(0); // fallback to first move
         }
     }
 
+    /**
+     * displays the battle result and determines the winner
+     * shows final stats and returns battle outcome
+     * 
+     * @return true if player wins, false if player loses
+     */
     private boolean displayBattleResult() {
-        System.out.println(STYLE_HEADER + "\n===========================================");
-        System.out.println("              BATTLE OVER!");
-        System.out.println("===========================================" + STYLE_END);
+        System.out.println(STYLE_HEADER + "\n========================================");
+        System.out.println("           BATTLE COMPLETE!");
+        System.out.println("========================================" + STYLE_END);
 
         if (player.isDefeated()) {
-            System.out.println(STYLE_ERROR + "💀 " + player.getName() + " was defeated!" + STYLE_END);
-            System.out.println(STYLE_ERROR + "You lose this battle!" + STYLE_END);
-            return false;
+            System.out.println(STYLE_ERROR + "💀 " + player.getName() + " has been defeated!" + STYLE_END);
+            System.out.println(STYLE_ERROR + enemy.getName() + " wins the battle!" + STYLE_END);
+            return false; // player lost
         } else {
-            System.out.println(STYLE_SUCCESS + "🎉 " + enemy.getName() + " was defeated!" + STYLE_END);
-            System.out.println(STYLE_SUCCESS + "You win this battle!" + STYLE_END);
-            return true;
+            System.out.println(STYLE_SUCCESS + "🎉 " + enemy.getName() + " has been defeated!" + STYLE_END);
+            System.out.println(STYLE_SUCCESS + player.getName() + " wins the battle!" + STYLE_END);
+            return true; // player won
         }
     }
 }
