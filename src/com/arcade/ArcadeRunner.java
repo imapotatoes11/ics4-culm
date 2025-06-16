@@ -23,6 +23,7 @@ import com.arcade.item.Achievement;
 import com.arcade.item.Luck;
 import com.arcade.item.ExtraLife;
 import com.arcade.item.TicketMultiplier;
+import com.arcade.util.Bcolors;
 
 /**
  * main class that runs the arcade gaming system
@@ -48,18 +49,18 @@ public class ArcadeRunner {
 
         // authentication loop - continues until user logs in or exits
         while (!loggedIn) {
-            System.out.println("\n\n=== ARCADE LOGIN ===");
-            System.out.println("Welcome to Arcade!");
+            System.out.println("\n\n" + Bcolors.BOLD + Bcolors.CYAN + "=== ARCADE LOGIN ===" + Bcolors.ENDC);
+            System.out.println(Bcolors.BRIGHT_YELLOW + "Welcome to Arcade!" + Bcolors.ENDC);
             System.out.println("Would you like to:");
-            System.out.println("  1. Log in as a user");
-            System.out.println("  2. Create an account");
-            System.out.println("  3. Exit");
-            System.out.print("Enter an option: ");
+            System.out.println(Bcolors.OKBLUE + "  1. Log in as a user" + Bcolors.ENDC);
+            System.out.println(Bcolors.OKBLUE + "  2. Create an account" + Bcolors.ENDC);
+            System.out.println(Bcolors.OKBLUE + "  3. Exit" + Bcolors.ENDC);
+            System.out.print(Bcolors.BOLD + Bcolors.BRIGHT_CYAN + "Enter an option: " + Bcolors.ENDC);
 
             // parse input as integer for menu selection
             String input = sc.nextLine();
             if (input.isEmpty()) {
-                System.out.println("Please enter a valid option.");
+                System.out.println(Bcolors.WARNING + "Please enter a valid option." + Bcolors.ENDC);
                 continue;
             }
 
@@ -67,56 +68,60 @@ public class ArcadeRunner {
             try {
                 option = Integer.parseInt(input.trim());
             } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid number.");
+                System.out.println(Bcolors.FAIL + "Please enter a valid number." + Bcolors.ENDC);
                 continue;
             }
             if (option == 3)
                 return;
             if (option == 2) {
-                System.out.print("Enter username (must be unique): ");
+                System.out.print(Bcolors.OKCYAN + "Enter username (must be unique): " + Bcolors.ENDC);
                 String username = sc.nextLine();
 
                 // check if username already exists in the system
                 if (arcadeManager.searchForPlayer(username.toLowerCase()) != null) {
                     System.out
-                            .println("Error: Username already exists. Try logging in or select a different username.");
+                            .println(Bcolors.FAIL
+                                    + "Error: Username already exists. Try logging in or select a different username."
+                                    + Bcolors.ENDC);
                 } else {
                     // use console for secure password input (hides typing)
                     Console console = System.console();
                     String password;
                     if (console != null) {
-                        password = new String(console.readPassword("Enter Password: "));
+                        password = new String(console.readPassword(Bcolors.OKCYAN + "Enter Password: " + Bcolors.ENDC));
                     } else {
                         // fallback for testing when console is not available
-                        System.out.print("Enter Password: ");
+                        System.out.print(Bcolors.OKCYAN + "Enter Password: " + Bcolors.ENDC);
                         password = sc.nextLine();
                     }
 
                     // hash password using sha-256 for security
                     String hashedPassword = generateSHA256(password);
-                    System.out.print("Enter your age: ");
+                    System.out.print(Bcolors.OKCYAN + "Enter your age: " + Bcolors.ENDC);
                     int age = Integer.parseInt(sc.nextLine());
-                    System.out.print("Enter your name: ");
+                    System.out.print(Bcolors.OKCYAN + "Enter your name: " + Bcolors.ENDC);
                     String name = sc.nextLine();
 
                     // create new player and add to system
                     Player newPlayer = new Player(name, username.toLowerCase(), hashedPassword, age);
                     arcadeManager.addPlayer(newPlayer);
-                    System.out.println("Account created successfully! You can now log in.");
+                    System.out.println(
+                            Bcolors.OKGREEN + "Account created successfully! You can now log in." + Bcolors.ENDC);
                 }
             }
             if (option == 1) {
-                System.out.print("Enter username: ");
+                System.out.print(Bcolors.OKCYAN + "Enter username: " + Bcolors.ENDC);
                 String usernameInput = sc.nextLine();
 
                 // secure password input
                 Console console = System.console();
                 String passwordInput;
                 if (console != null) {
-                    passwordInput = new String(console.readPassword("Enter Password: "));
+                    passwordInput = new String(
+                            console.readPassword(Bcolors.OKCYAN + "Enter Password: " + Bcolors.ENDC));
                 } else {
                     // fallback for testing when console is not available
-                    System.out.print("Enter Password: ");
+                    System.out.print(Bcolors.OKCYAN + "Enter Password: " + Bcolors.ENDC);
                     passwordInput = sc.nextLine();
                 }
 
@@ -127,13 +132,15 @@ public class ArcadeRunner {
                 // handle different login outcomes
                 switch (status) {
                     case USERNAME_NOT_FOUND:
-                        System.out.println("Error: Username not found. Try again or sign up as a new user.");
+                        System.out.println(Bcolors.FAIL
+                                + "Error: Username not found. Try again or sign up as a new user." + Bcolors.ENDC);
                         break;
                     case INCORRECT_PASSWORD:
-                        System.out.println("Error: The password you entered is incorrect. Please try again.");
+                        System.out.println(Bcolors.FAIL
+                                + "Error: The password you entered is incorrect. Please try again." + Bcolors.ENDC);
                         break;
                     case SUCCESS:
-                        System.out.println("Login success!");
+                        System.out.println(Bcolors.OKGREEN + "Login success!" + Bcolors.ENDC);
                         loggedIn = true;
                         break;
                 }
@@ -157,22 +164,23 @@ public class ArcadeRunner {
      * @param sc            scanner for user input
      */
     private static void runAdminMenu(ArcadeManager arcadeManager, Scanner sc) {
-        System.out.println("\n\n=== ARCADE > ADMIN PANEL ===");
-        System.out.println("Welcome Administrator, " + arcadeManager.getPlayer().getUsername() + "!");
+        System.out.println("\n\n" + Bcolors.BOLD + Bcolors.MAGENTA + "=== ARCADE > ADMIN PANEL ===" + Bcolors.ENDC);
+        System.out.println(Bcolors.BRIGHT_MAGENTA + "Welcome Administrator, " + arcadeManager.getPlayer().getUsername()
+                + "!" + Bcolors.ENDC);
 
         boolean running = true;
         do {
-            System.out.println("\n\n=== ARCADE > ADMIN MENU ===");
-            System.out.println("  1. View all players");
-            System.out.println("  2. View players sorted by username");
-            System.out.println("  3. View players sorted by age");
-            System.out.println("  4. Search player by username (Binary Search)");
-            System.out.println("  5. Search players by age range (Linear Search)");
-            System.out.println("  6. Search players by name");
-            System.out.println("  7. Remove player");
-            System.out.println("  8. View player statistics");
-            System.out.println("  9. Log out");
-            System.out.print("Enter an option: ");
+            System.out.println("\n\n" + Bcolors.BOLD + Bcolors.MAGENTA + "=== ARCADE > ADMIN MENU ===" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  1. View all players" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  2. View players sorted by username" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  3. View players sorted by age" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  4. Search player by username (Binary Search)" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  5. Search players by age range (Linear Search)" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  6. Search players by name" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  7. Remove player" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  8. View player statistics" + Bcolors.ENDC);
+            System.out.println(Bcolors.YELLOW + "  9. Log out" + Bcolors.ENDC);
+            System.out.print(Bcolors.BOLD + Bcolors.BRIGHT_CYAN + "Enter an option: " + Bcolors.ENDC);
 
             try {
                 int choice = Integer.parseInt(sc.nextLine());
@@ -189,50 +197,54 @@ public class ArcadeRunner {
                         arcadeManager.displayPlayersSortedByAge();
                         break;
                     case 4:
-                        System.out.print("Enter username to search: ");
+                        System.out.print(Bcolors.OKCYAN + "Enter username to search: " + Bcolors.ENDC);
                         String searchUsername = sc.nextLine();
 
                         // demonstrates binary search algorithm (requires sorted data)
                         Player foundPlayer = arcadeManager.binarySearchPlayerByUsername(searchUsername);
                         if (foundPlayer != null) {
-                            System.out.println("\n=== PLAYER FOUND ===");
-                            System.out.println("Username: " + foundPlayer.getUsername());
-                            System.out.println("Name: " + foundPlayer.getName());
-                            System.out.println("Age: " + foundPlayer.getAge());
-                            System.out.println("Achievements: " + foundPlayer.getAchievements().size());
+                            System.out.println(
+                                    "\n" + Bcolors.BOLD + Bcolors.GREEN + "=== PLAYER FOUND ===" + Bcolors.ENDC);
+                            System.out
+                                    .println(Bcolors.OKBLUE + "Username: " + Bcolors.ENDC + foundPlayer.getUsername());
+                            System.out.println(Bcolors.OKBLUE + "Name: " + Bcolors.ENDC + foundPlayer.getName());
+                            System.out.println(Bcolors.OKBLUE + "Age: " + Bcolors.ENDC + foundPlayer.getAge());
+                            System.out.println(Bcolors.OKBLUE + "Achievements: " + Bcolors.ENDC
+                                    + foundPlayer.getAchievements().size());
                         } else {
-                            System.out.println("Player not found.");
+                            System.out.println(Bcolors.WARNING + "Player not found." + Bcolors.ENDC);
                         }
                         break;
                     case 5:
-                        System.out.print("Enter minimum age: ");
+                        System.out.print(Bcolors.OKCYAN + "Enter minimum age: " + Bcolors.ENDC);
                         int minAge = Integer.parseInt(sc.nextLine());
-                        System.out.print("Enter maximum age: ");
+                        System.out.print(Bcolors.OKCYAN + "Enter maximum age: " + Bcolors.ENDC);
                         int maxAge = Integer.parseInt(sc.nextLine());
 
                         // demonstrates linear search algorithm
                         arcadeManager.searchPlayersByAgeRange(minAge, maxAge);
                         break;
                     case 6:
-                        System.out.print("Enter player name to search: ");
+                        System.out.print(Bcolors.OKCYAN + "Enter player name to search: " + Bcolors.ENDC);
                         String playerName = sc.nextLine();
                         List<Player> playersFound = arcadeManager.searchForPlayersByName(playerName);
                         if (!playersFound.isEmpty()) {
-                            System.out.println("\n=== PLAYERS FOUND ===");
+                            System.out.println(
+                                    "\n" + Bcolors.BOLD + Bcolors.GREEN + "=== PLAYERS FOUND ===" + Bcolors.ENDC);
                             for (Player p : playersFound) {
-                                System.out.println("Username: " + p.getUsername() +
-                                        ", Name: " + p.getName() +
-                                        ", Age: " + p.getAge());
+                                System.out.println(Bcolors.OKBLUE + "Username: " + Bcolors.ENDC + p.getUsername() +
+                                        Bcolors.OKBLUE + ", Name: " + Bcolors.ENDC + p.getName() +
+                                        Bcolors.OKBLUE + ", Age: " + Bcolors.ENDC + p.getAge());
                             }
                         }
                         break;
                     case 7:
-                        System.out.print("Enter username to remove: ");
+                        System.out.print(Bcolors.OKCYAN + "Enter username to remove: " + Bcolors.ENDC);
                         String removeUsername = sc.nextLine();
                         if (arcadeManager.removePlayer(removeUsername)) {
-                            System.out.println("Player removed successfully.");
+                            System.out.println(Bcolors.OKGREEN + "Player removed successfully." + Bcolors.ENDC);
                         } else {
-                            System.out.println("Failed to remove player.");
+                            System.out.println(Bcolors.FAIL + "Failed to remove player." + Bcolors.ENDC);
                         }
                         break;
                     case 8:
@@ -240,13 +252,13 @@ public class ArcadeRunner {
                         break;
                     case 9:
                         running = false;
-                        System.out.println("Logging out...");
+                        System.out.println(Bcolors.BRIGHT_YELLOW + "Logging out..." + Bcolors.ENDC);
                         break;
                     default:
-                        System.out.println("Invalid option, please try again.");
+                        System.out.println(Bcolors.WARNING + "Invalid option, please try again." + Bcolors.ENDC);
                 }
             } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid number.");
+                System.out.println(Bcolors.FAIL + "Please enter a valid number." + Bcolors.ENDC);
             }
         } while (running);
     }
@@ -259,19 +271,20 @@ public class ArcadeRunner {
      * @param sc            scanner for user input
      */
     private static void runUserMenu(ArcadeManager arcadeManager, Scanner sc) {
-        System.out.println("\n\n=== ARCADE > USER DASHBOARD ===");
-        System.out.println("Welcome to the Arcade, " + arcadeManager.getPlayer().getUsername() + "!");
+        System.out.println("\n\n" + Bcolors.BOLD + Bcolors.BLUE + "=== ARCADE > USER DASHBOARD ===" + Bcolors.ENDC);
+        System.out.println(Bcolors.BRIGHT_BLUE + "Welcome to the Arcade, " + arcadeManager.getPlayer().getUsername()
+                + "!" + Bcolors.ENDC);
         boolean running = true;
         do {
-            System.out.println("\n\n=== ARCADE > MAIN MENU ===");
-            System.out.println("What would you like to do?");
-            System.out.println("  1. View your profile");
-            System.out.println("  2. Play a game");
-            System.out.println("  3. View items/achievements");
-            System.out.println("  4. Buy tokens");
-            System.out.println("  5. Shop for items/powerups");
-            System.out.println("  6. Log out");
-            System.out.print("Enter an option: ");
+            System.out.println("\n\n" + Bcolors.BOLD + Bcolors.BLUE + "=== ARCADE > MAIN MENU ===" + Bcolors.ENDC);
+            System.out.println(Bcolors.BRIGHT_WHITE + "What would you like to do?" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  1. View your profile" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  2. Play a game" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  3. View items/achievements" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  4. Buy tokens" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  5. Shop for items/powerups" + Bcolors.ENDC);
+            System.out.println(Bcolors.YELLOW + "  6. Log out" + Bcolors.ENDC);
+            System.out.print(Bcolors.BOLD + Bcolors.BRIGHT_CYAN + "Enter an option: " + Bcolors.ENDC);
 
             try {
                 int choice = Integer.parseInt(sc.nextLine());
@@ -293,14 +306,14 @@ public class ArcadeRunner {
                         break;
                     case 6:
                         running = false;
-                        System.out.println("Thank you for playing! Goodbye, " +
-                                arcadeManager.getPlayer().getUsername() + "!");
+                        System.out.println(Bcolors.BRIGHT_YELLOW + "Thank you for playing! Goodbye, " +
+                                arcadeManager.getPlayer().getUsername() + "!" + Bcolors.ENDC);
                         break;
                     default:
-                        System.out.println("Invalid option, please try again.");
+                        System.out.println(Bcolors.WARNING + "Invalid option, please try again." + Bcolors.ENDC);
                 }
             } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid number.");
+                System.out.println(Bcolors.FAIL + "Please enter a valid number." + Bcolors.ENDC);
             }
         } while (running);
     }
@@ -315,27 +328,35 @@ public class ArcadeRunner {
     private static void viewProfile(ArcadeManager arcadeManager) {
         Player player = arcadeManager.getPlayer();
 
-        System.out.println("\n\n=== ARCADE > MAIN MENU > YOUR PROFILE ===");
-        System.out.println("Username: " + player.getUsername());
-        System.out.println("Name: " + player.getName());
-        System.out.println("Age: " + player.getAge());
-        System.out.println("Achievements: " + player.getAchievements().size());
+        System.out.println(
+                "\n\n" + Bcolors.BOLD + Bcolors.GREEN + "=== ARCADE > MAIN MENU > YOUR PROFILE ===" + Bcolors.ENDC);
+        System.out.println(Bcolors.OKBLUE + "Username: " + Bcolors.ENDC + Bcolors.BRIGHT_WHITE + player.getUsername()
+                + Bcolors.ENDC);
+        System.out.println(
+                Bcolors.OKBLUE + "Name: " + Bcolors.ENDC + Bcolors.BRIGHT_WHITE + player.getName() + Bcolors.ENDC);
+        System.out.println(
+                Bcolors.OKBLUE + "Age: " + Bcolors.ENDC + Bcolors.BRIGHT_WHITE + player.getAge() + Bcolors.ENDC);
+        System.out.println(Bcolors.OKBLUE + "Achievements: " + Bcolors.ENDC + Bcolors.BRIGHT_WHITE
+                + player.getAchievements().size() + Bcolors.ENDC);
 
         // display wallet information with emoji indicators
-        System.out.println("\n💳 WALLET:");
-        System.out.println("  Tokens: " + player.getWallet().getTokens());
-        System.out.println("  Tickets: " + player.getWallet().getTickets());
+        System.out.println("\n" + Bcolors.BOLD + Bcolors.CYAN + "💳 WALLET:" + Bcolors.ENDC);
+        System.out.println("  " + Bcolors.YELLOW + "Tokens: " + Bcolors.BRIGHT_YELLOW + player.getWallet().getTokens()
+                + Bcolors.ENDC);
+        System.out.println("  " + Bcolors.MAGENTA + "Tickets: " + Bcolors.BRIGHT_MAGENTA
+                + player.getWallet().getTickets() + Bcolors.ENDC);
 
         // calculate achievement score using factorial (demonstrates recursion)
         // limit to 5 to prevent overflow with large numbers
         int achievementScore = arcadeManager.calculateFactorial(Math.min(player.getAchievements().size(), 5));
-        System.out.println("Achievement Score: " + achievementScore + " points");
+        System.out.println(Bcolors.BRIGHT_GREEN + "Achievement Score: " + achievementScore + " points" + Bcolors.ENDC);
 
         // display individual achievements if any exist
         if (!player.getAchievements().isEmpty()) {
-            System.out.println("\nYour Achievements:");
+            System.out.println("\n" + Bcolors.BOLD + Bcolors.GREEN + "Your Achievements:" + Bcolors.ENDC);
             for (Achievement achievement : player.getAchievements()) {
-                System.out.println("- " + achievement.getName() + ": " + achievement.getDescription());
+                System.out.println(Bcolors.GREEN + "- " + achievement.getName() + ": " + Bcolors.ENDC
+                        + achievement.getDescription());
             }
         }
     }
@@ -352,12 +373,14 @@ public class ArcadeRunner {
         List<Game> games = arcadeManager.getGames();
         Player player = arcadeManager.getPlayer();
 
-        System.out.println("\n\n=== ARCADE > MAIN MENU > GAMES ===");
-        System.out.println("💳 Your balance: " + player.getWallet().getTokens() + " tokens, " +
-                player.getWallet().getTickets() + " tickets");
-        System.out.println("🎯 Difficulty is automatically adjusted based on your age (" +
-                arcadeManager.getPlayer().getAge() + ")");
-        System.out.println("   Players aged 20-30 get full difficulty; others get reduced difficulty.\n");
+        System.out.println("\n\n" + Bcolors.BOLD + Bcolors.RED + "=== ARCADE > MAIN MENU > GAMES ===" + Bcolors.ENDC);
+        System.out.println(Bcolors.CYAN + "💳 Your balance: " + Bcolors.BRIGHT_YELLOW + player.getWallet().getTokens() +
+                Bcolors.CYAN + " tokens, " + Bcolors.BRIGHT_MAGENTA + player.getWallet().getTickets() +
+                Bcolors.CYAN + " tickets" + Bcolors.ENDC);
+        System.out.println(Bcolors.OKBLUE + "🎯 Difficulty is automatically adjusted based on your age (" +
+                Bcolors.BRIGHT_WHITE + arcadeManager.getPlayer().getAge() + Bcolors.OKBLUE + ")" + Bcolors.ENDC);
+        System.out.println(Bcolors.DIM + "   Players aged 20-30 get full difficulty; others get reduced difficulty."
+                + Bcolors.ENDC + "\n");
 
         // display available games with affordability indicators
         for (int i = 0; i < games.size(); i++) {
@@ -383,7 +406,8 @@ public class ArcadeRunner {
                     ", Reward: " + game.getTicketRewardRange() + " tickets)");
         }
 
-        System.out.print("Select a game (1-" + games.size() + ") or 0 to go back: ");
+        System.out.print(Bcolors.BOLD + Bcolors.BRIGHT_MAGENTA + "Select a game (1-" + games.size()
+                + ") or 0 to go back: " + Bcolors.ENDC);
 
         try {
             int choice = Integer.parseInt(sc.nextLine());
@@ -396,26 +420,33 @@ public class ArcadeRunner {
 
                 // check if player has enough tokens
                 if (!arcadeManager.canPlayerAffordGame(selectedGame)) {
-                    System.out.println("❌ You don't have enough tokens to play " + selectedGame.getTitle() + "!");
-                    System.out.println("   Required: " + selectedGame.getRequiredTokens() + " tokens");
-                    System.out.println("   You have: " + player.getWallet().getTokens() + " tokens");
+                    System.out.println(Bcolors.FAIL + "❌ You don't have enough tokens to play "
+                            + selectedGame.getTitle() + "!" + Bcolors.ENDC);
+                    System.out.println(Bcolors.WARNING + "   Required: " + selectedGame.getRequiredTokens() + " tokens"
+                            + Bcolors.ENDC);
+                    System.out.println(Bcolors.WARNING + "   You have: " + player.getWallet().getTokens() + " tokens"
+                            + Bcolors.ENDC);
                     return;
                 }
 
                 // confirm payment before starting game
-                System.out.println("\n💰 This game costs " + selectedGame.getRequiredTokens() + " tokens.");
-                System.out.print("Do you want to proceed? (y/n): ");
+                System.out.println("\n" + Bcolors.YELLOW + "💰 This game costs " + Bcolors.BRIGHT_YELLOW
+                        + selectedGame.getRequiredTokens() +
+                        Bcolors.YELLOW + " tokens." + Bcolors.ENDC);
+                System.out
+                        .print(Bcolors.BOLD + Bcolors.BRIGHT_YELLOW + "Do you want to proceed? (y/n): " + Bcolors.ENDC);
                 String confirm = sc.nextLine().toLowerCase();
 
                 if (!confirm.startsWith("y")) {
-                    System.out.println("Game cancelled.");
+                    System.out.println(Bcolors.WARNING + "Game cancelled." + Bcolors.ENDC);
                     return;
                 }
 
                 // apply age-based difficulty adjustment before starting the game
                 arcadeManager.adjustGameDifficultyForCurrentPlayer(selectedGame);
 
-                System.out.println("\nStarting " + selectedGame.getTitle() + "...");
+                System.out.println(
+                        "\n" + Bcolors.BRIGHT_GREEN + "Starting " + selectedGame.getTitle() + "..." + Bcolors.ENDC);
 
                 // gather available items from player's inventory
                 ArrayList<Functional> availableItems = new ArrayList<>();
@@ -431,8 +462,10 @@ public class ArcadeRunner {
                 // menu)
                 ArrayList<Functional> itemsToUse = new ArrayList<>();
                 if (!availableItems.isEmpty()) {
-                    System.out.println("\n🎮 You have " + availableItems.size() + " powerups available!");
-                    System.out.println("Your powerups will be automatically used during the game.");
+                    System.out.println("\n" + Bcolors.BRIGHT_BLUE + "🎮 You have " + availableItems.size()
+                            + " powerups available!" + Bcolors.ENDC);
+                    System.out.println(Bcolors.OKBLUE + "Your powerups will be automatically used during the game."
+                            + Bcolors.ENDC);
                     itemsToUse.addAll(availableItems);
                 }
 
@@ -448,10 +481,10 @@ public class ArcadeRunner {
                 arcadeManager.getPlayer().addAchievement(gameAchievement);
 
             } else {
-                System.out.println("Invalid selection.");
+                System.out.println(Bcolors.WARNING + "Invalid selection." + Bcolors.ENDC);
             }
         } catch (NumberFormatException e) {
-            System.out.println("Please enter a valid number.");
+            System.out.println(Bcolors.FAIL + "Please enter a valid number." + Bcolors.ENDC);
         }
     }
 
@@ -468,53 +501,63 @@ public class ArcadeRunner {
 
         boolean viewing = true;
         while (viewing) {
-            System.out.println("\n\n=== ARCADE > MAIN MENU > ITEMS & ACHIEVEMENTS ===");
-            System.out.println("    1. View wallet & balance");
-            System.out.println("    2. View all achievements");
-            System.out.println("    3. Sort achievements alphabetically");
-            System.out.println("    4. Search for specific achievement");
-            System.out.println("    5. Back to main menu");
-            System.out.print("Enter an option: ");
+            System.out.println("\n\n" + Bcolors.BOLD + Bcolors.PURPLE
+                    + "=== ARCADE > MAIN MENU > ITEMS & ACHIEVEMENTS ===" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "    1. View wallet & balance" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "    2. View all achievements" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "    3. Sort achievements alphabetically" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "    4. Search for specific achievement" + Bcolors.ENDC);
+            System.out.println(Bcolors.YELLOW + "    5. Back to main menu" + Bcolors.ENDC);
+            System.out.print(Bcolors.BOLD + Bcolors.BRIGHT_CYAN + "Enter an option: " + Bcolors.ENDC);
 
             try {
                 int choice = Integer.parseInt(sc.nextLine());
                 switch (choice) {
                     case 1:
-                        System.out.println("\n\n=== ARCADE > MAIN MENU > ITEMS & ACHIEVEMENTS > WALLET ===");
-                        System.out.println("💳 WALLET BALANCE:");
-                        System.out.println("   Tokens: " + player.getWallet().getTokens());
-                        System.out.println("   Tickets: " + player.getWallet().getTickets());
+                        System.out.println("\n\n" + Bcolors.BOLD + Bcolors.GREEN
+                                + "=== ARCADE > MAIN MENU > ITEMS & ACHIEVEMENTS > WALLET ===" + Bcolors.ENDC);
+                        System.out.println(Bcolors.BOLD + Bcolors.CYAN + "💳 WALLET BALANCE:" + Bcolors.ENDC);
+                        System.out.println("   " + Bcolors.YELLOW + "Tokens: " + Bcolors.BRIGHT_YELLOW
+                                + player.getWallet().getTokens() + Bcolors.ENDC);
+                        System.out.println("   " + Bcolors.MAGENTA + "Tickets: " + Bcolors.BRIGHT_MAGENTA
+                                + player.getWallet().getTickets() + Bcolors.ENDC);
 
                         // display powerups if any exist
                         if (player.getWallet().getPowerups() != null && !player.getWallet().getPowerups().isEmpty()) {
-                            System.out.println("\n🎮 POWERUPS:");
+                            System.out.println("\n" + Bcolors.BOLD + Bcolors.BLUE + "🎮 POWERUPS:" + Bcolors.ENDC);
                             for (Functional powerup : player.getWallet().getPowerups()) {
-                                System.out.println("   - " + powerup.getName() + " (Uses: " + powerup.getNumUses() +
-                                        ", Price: " + powerup.getPrice() + " tickets)");
+                                System.out.println(Bcolors.OKBLUE + "   - " + powerup.getName() + " (Uses: "
+                                        + powerup.getNumUses() +
+                                        ", Price: " + powerup.getPrice() + " tickets)" + Bcolors.ENDC);
                             }
                         } else {
-                            System.out.println("\n🎮 POWERUPS: None");
+                            System.out.println("\n" + Bcolors.BOLD + Bcolors.BLUE + "🎮 POWERUPS: " + Bcolors.DIM
+                                    + "None" + Bcolors.ENDC);
                         }
 
                         // display trophies if any exist
                         if (player.getWallet().getTrophies() != null && !player.getWallet().getTrophies().isEmpty()) {
-                            System.out.println("\n🏆 TROPHIES:");
+                            System.out.println("\n" + Bcolors.BOLD + Bcolors.YELLOW + "🏆 TROPHIES:" + Bcolors.ENDC);
                             for (Achievement trophy : player.getWallet().getTrophies()) {
-                                System.out.println("   - " + trophy.getName() + ": " + trophy.getDescription());
+                                System.out.println(Bcolors.BRIGHT_YELLOW + "   - " + trophy.getName() + ": "
+                                        + Bcolors.ENDC + trophy.getDescription());
                             }
                         } else {
-                            System.out.println("\n🏆 TROPHIES: None");
+                            System.out.println("\n" + Bcolors.BOLD + Bcolors.YELLOW + "🏆 TROPHIES: " + Bcolors.DIM
+                                    + "None" + Bcolors.ENDC);
                         }
                         break;
                     case 2:
                         List<Achievement> achievements = player.getAchievements();
                         if (achievements.isEmpty()) {
-                            System.out.println("You have no achievements yet. Play some games to earn them!");
+                            System.out.println(Bcolors.WARNING
+                                    + "You have no achievements yet. Play some games to earn them!" + Bcolors.ENDC);
                         } else {
-                            System.out.println("\n\n=== ARCADE > MAIN MENU > ITEMS & ACHIEVEMENTS > VIEW ALL ===");
+                            System.out.println("\n\n" + Bcolors.BOLD + Bcolors.GREEN
+                                    + "=== ARCADE > MAIN MENU > ITEMS & ACHIEVEMENTS > VIEW ALL ===" + Bcolors.ENDC);
                             for (Achievement achievement : achievements) {
-                                System.out.println(
-                                        "      - " + achievement.getName() + ": " + achievement.getDescription());
+                                System.out.println(Bcolors.GREEN + "      - " + achievement.getName() + ": "
+                                        + Bcolors.ENDC + achievement.getDescription());
                             }
                         }
                         break;
@@ -523,25 +566,26 @@ public class ArcadeRunner {
                         player.sortAchievements();
                         break;
                     case 4:
-                        System.out.print("Enter achievement name to search: ");
+                        System.out.print(Bcolors.OKCYAN + "Enter achievement name to search: " + Bcolors.ENDC);
                         String searchName = sc.nextLine();
 
                         // demonstrates linear search algorithm
                         Achievement found = player.findAchievementByName(searchName);
                         if (found != null) {
-                            System.out.println("Found: " + found.getName() + " - " + found.getDescription());
+                            System.out.println(Bcolors.OKGREEN + "Found: " + found.getName() + " - " + Bcolors.ENDC
+                                    + found.getDescription());
                         } else {
-                            System.out.println("Achievement not found.");
+                            System.out.println(Bcolors.WARNING + "Achievement not found." + Bcolors.ENDC);
                         }
                         break;
                     case 5:
                         viewing = false;
                         break;
                     default:
-                        System.out.println("Invalid option, please try again.");
+                        System.out.println(Bcolors.WARNING + "Invalid option, please try again." + Bcolors.ENDC);
                 }
             } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid number.");
+                System.out.println(Bcolors.FAIL + "Please enter a valid number." + Bcolors.ENDC);
             }
         }
     }
@@ -563,8 +607,9 @@ public class ArcadeRunner {
             return;
         }
 
-        System.out.println("\n=== PLAYER STATISTICS ===");
-        System.out.println("Total Players: " + allPlayers.size());
+        System.out.println("\n" + Bcolors.BOLD + Bcolors.CYAN + "=== PLAYER STATISTICS ===" + Bcolors.ENDC);
+        System.out
+                .println(Bcolors.OKBLUE + "Total Players: " + Bcolors.BRIGHT_WHITE + allPlayers.size() + Bcolors.ENDC);
 
         // calculate aggregate statistics
         int totalAge = 0;
@@ -579,9 +624,13 @@ public class ArcadeRunner {
         double averageAge = (double) totalAge / allPlayers.size();
         double averageAchievements = (double) totalAchievements / allPlayers.size();
 
-        System.out.printf("Average Age: %.1f years\n", averageAge);
-        System.out.printf("Average Achievements: %.1f per player\n", averageAchievements);
-        System.out.println("Total Achievements: " + totalAchievements);
+        System.out.printf(Bcolors.OKBLUE + "Average Age: " + Bcolors.BRIGHT_WHITE + "%.1f years\n" + Bcolors.ENDC,
+                averageAge);
+        System.out.printf(
+                Bcolors.OKBLUE + "Average Achievements: " + Bcolors.BRIGHT_WHITE + "%.1f per player\n" + Bcolors.ENDC,
+                averageAchievements);
+        System.out.println(
+                Bcolors.OKBLUE + "Total Achievements: " + Bcolors.BRIGHT_WHITE + totalAchievements + Bcolors.ENDC);
     }
 
     /**
@@ -645,16 +694,20 @@ public class ArcadeRunner {
     private static void buyTokens(ArcadeManager arcadeManager, Scanner sc) {
         Player player = arcadeManager.getPlayer();
 
-        System.out.println("\n\n=== ARCADE > MAIN MENU > BUY TOKENS ===");
-        System.out.println("💳 Current balance: " + player.getWallet().getTokens() + " tokens, " +
-                player.getWallet().getTickets() + " tickets");
-        System.out.println("\n💰 TOKEN PACKAGES AVAILABLE:");
-        System.out.println("  1. Small Pack - 25 tokens ($5.00)");
-        System.out.println("  2. Medium Pack - 60 tokens ($10.00) [BEST VALUE!]");
-        System.out.println("  3. Large Pack - 100 tokens ($15.00)");
-        System.out.println("  4. Mega Pack - 200 tokens ($25.00)");
-        System.out.println("  5. Cancel purchase");
-        System.out.print("Select a package: ");
+        System.out.println(
+                "\n\n" + Bcolors.BOLD + Bcolors.YELLOW + "=== ARCADE > MAIN MENU > BUY TOKENS ===" + Bcolors.ENDC);
+        System.out.println(
+                Bcolors.CYAN + "💳 Current balance: " + Bcolors.BRIGHT_YELLOW + player.getWallet().getTokens() +
+                        Bcolors.CYAN + " tokens, " + Bcolors.BRIGHT_MAGENTA + player.getWallet().getTickets() +
+                        Bcolors.CYAN + " tickets" + Bcolors.ENDC);
+        System.out.println("\n" + Bcolors.BOLD + Bcolors.GREEN + "💰 TOKEN PACKAGES AVAILABLE:" + Bcolors.ENDC);
+        System.out.println(Bcolors.OKGREEN + "  1. Small Pack - 25 tokens ($5.00)" + Bcolors.ENDC);
+        System.out.println(Bcolors.OKGREEN + "  2. Medium Pack - 60 tokens ($10.00) " + Bcolors.BRIGHT_GREEN
+                + "[BEST VALUE!]" + Bcolors.ENDC);
+        System.out.println(Bcolors.OKGREEN + "  3. Large Pack - 100 tokens ($15.00)" + Bcolors.ENDC);
+        System.out.println(Bcolors.OKGREEN + "  4. Mega Pack - 200 tokens ($25.00)" + Bcolors.ENDC);
+        System.out.println(Bcolors.YELLOW + "  5. Cancel purchase" + Bcolors.ENDC);
+        System.out.print(Bcolors.BOLD + Bcolors.BRIGHT_CYAN + "Select a package: " + Bcolors.ENDC);
 
         try {
             int choice = Integer.parseInt(sc.nextLine());
@@ -693,7 +746,7 @@ public class ArcadeRunner {
 
             // Confirm purchase
             System.out.println("\n💰 You selected: " + packageName + " (" + tokensToAdd + " tokens for " + price + ")");
-            System.out.print("Confirm purchase? (y/n): ");
+            System.out.print(Bcolors.BOLD + Bcolors.BRIGHT_YELLOW + "Confirm purchase? (y/n): " + Bcolors.ENDC);
             String confirm = sc.nextLine().toLowerCase();
 
             if (confirm.startsWith("y")) {
@@ -742,15 +795,21 @@ public class ArcadeRunner {
             System.out.println("💳 Current balance: " + player.getWallet().getTokens() + " tokens, " +
                     player.getWallet().getTickets() + " tickets");
             System.out.println("\n🛍️ ITEMS AVAILABLE FOR PURCHASE:");
-            System.out.println("  1. 🍀 Luck Charm - Reduces game difficulty (3 uses, 20 tickets)");
-            System.out.println("  2. ❤️  Extra Life - Gives second chance in games (1 use, 15 tickets)");
-            System.out.println("  3. 🎫 Ticket Multiplier - Doubles ticket rewards (1 use, 25 tickets)");
-            System.out.println("  4. 🍀 Super Luck Charm - Greatly reduces difficulty (2 uses, 35 tickets)");
-            System.out.println("  5. ❤️  Life Bundle - Multiple extra lives (3 uses, 40 tickets)");
-            System.out.println("  6. 🎫 Mega Multiplier - Triples ticket rewards (1 use, 50 tickets)");
-            System.out.println("  7. View your current items");
-            System.out.println("  8. Back to main menu");
-            System.out.print("Select an option: ");
+            System.out.println(
+                    Bcolors.GREEN + "  1. 🍀 Luck Charm - Reduces game difficulty (3 uses, 20 tickets)" + Bcolors.ENDC);
+            System.out.println(Bcolors.RED + "  2. ❤️  Extra Life - Gives second chance in games (1 use, 15 tickets)"
+                    + Bcolors.ENDC);
+            System.out.println(Bcolors.MAGENTA
+                    + "  3. 🎫 Ticket Multiplier - Doubles ticket rewards (1 use, 25 tickets)" + Bcolors.ENDC);
+            System.out.println(Bcolors.BRIGHT_GREEN
+                    + "  4. 🍀 Super Luck Charm - Greatly reduces difficulty (2 uses, 35 tickets)" + Bcolors.ENDC);
+            System.out.println(Bcolors.BRIGHT_RED + "  5. ❤️  Life Bundle - Multiple extra lives (3 uses, 40 tickets)"
+                    + Bcolors.ENDC);
+            System.out.println(Bcolors.BRIGHT_MAGENTA
+                    + "  6. 🎫 Mega Multiplier - Triples ticket rewards (1 use, 50 tickets)" + Bcolors.ENDC);
+            System.out.println(Bcolors.CYAN + "  7. View your current items" + Bcolors.ENDC);
+            System.out.println(Bcolors.YELLOW + "  8. Back to main menu" + Bcolors.ENDC);
+            System.out.print(Bcolors.BOLD + Bcolors.BRIGHT_CYAN + "Select an option: " + Bcolors.ENDC);
 
             try {
                 int choice = Integer.parseInt(sc.nextLine());
@@ -809,7 +868,7 @@ public class ArcadeRunner {
             return;
         }
 
-        System.out.print("Confirm purchase? (y/n): ");
+        System.out.print(Bcolors.BOLD + Bcolors.BRIGHT_YELLOW + "Confirm purchase? (y/n): " + Bcolors.ENDC);
         String confirm = sc.nextLine().toLowerCase();
 
         if (confirm.startsWith("y")) {
