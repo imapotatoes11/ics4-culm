@@ -6,7 +6,7 @@
  * serves as parent class for achievements, functional items, etc.
  *
  * date: jun 15, 2025
- * author: kevin wang
+ * author: wen zheng, kevin wang
  */
 package com.arcade.item;
 

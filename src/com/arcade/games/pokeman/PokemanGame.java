@@ -14,6 +14,8 @@ import java.util.*;
 import com.arcade.games.Game;
 import com.arcade.util.Bcolors;
 import com.arcade.item.*;
+import com.arcade.item.AchievementChecker;
+import com.arcade.item.Achievement;
 
 /**
  * pokemon-style battle game extending the base Game class
@@ -103,6 +105,7 @@ public class PokemanGame extends Game {
 
         int battlesWon = 0;
         int totalBattles = 4;
+        boolean usedExtraLife = false;
 
         // Battle through 4 enemies
         battleLoop: for (int battleNumber = 1; battleNumber <= totalBattles; battleNumber++) {
@@ -115,6 +118,7 @@ public class PokemanGame extends Game {
                     if (item instanceof ExtraLife && item.getNumUses() > 0) {
                         item.setNumUses(item.getNumUses() - 1);
                         playerPokeman.heal(playerPokeman.getMaxHp());
+                        usedExtraLife = true;
                         System.out.println(STYLE_WARNING +
                                 "Extra Life used! " + playerPokeman.getName() +
                                 " is revived at full HP." + STYLE_END);
@@ -124,6 +128,13 @@ public class PokemanGame extends Game {
                     }
                 }
                 displayDefeatScreen();
+
+                // Check and display achievements for game over
+                List<Achievement> achievements = new ArrayList<>();
+                achievements.addAll(AchievementChecker.checkGeneralAchievements(false, 0.0, difficulty, usedExtraLife));
+                achievements.addAll(AchievementChecker.checkPokemanAchievements(false, battlesWon, totalBattles, 0.0));
+                AchievementChecker.displayAchievements(achievements);
+
                 return 0; // No tickets for losing
             }
 
@@ -150,6 +161,19 @@ public class PokemanGame extends Game {
         }
 
         displayVictoryScreen(finalTickets);
+
+        // Check and display achievements for victory
+        double finalHealthPercentage = playerPokeman != null
+                ? (double) playerPokeman.getCurrentHp() / playerPokeman.getMaxHp()
+                : 0.0;
+
+        List<Achievement> achievements = new ArrayList<>();
+        achievements
+                .addAll(AchievementChecker.checkGeneralAchievements(true, performanceScore, difficulty, usedExtraLife));
+        achievements.addAll(
+                AchievementChecker.checkPokemanAchievements(true, battlesWon, totalBattles, finalHealthPercentage));
+        AchievementChecker.displayAchievements(achievements);
+
         return finalTickets;
     }
 

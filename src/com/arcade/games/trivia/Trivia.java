@@ -6,7 +6,7 @@
  * includes luck items and ticket multipliers for enhanced gameplay
  *
  * date: jun 15, 2025
- * author: kevin wang
+ * author: eddie qu, refactored by kevin wang
  */
 package com.arcade.games.trivia;
 
@@ -14,6 +14,8 @@ import com.arcade.games.Game;
 import com.arcade.item.Functional;
 import com.arcade.item.Luck;
 import com.arcade.item.TicketMultiplier;
+import com.arcade.item.AchievementChecker;
+import com.arcade.item.Achievement;
 
 import java.util.*;
 
@@ -161,6 +163,15 @@ public class Trivia extends Game {
       System.out.printf("Game Over! You answered %d/%d questions correctly with a score of %d!\n",
             result.correctAnswers, result.totalQuestions, result.score);
       System.out.printf("You've earned %d tickets!\n", finalTickets);
+
+      // Check and display achievements
+      boolean gameWon = finalTickets > 0;
+      List<Achievement> achievements = new ArrayList<>();
+      achievements
+            .addAll(AchievementChecker.checkGeneralAchievements(gameWon, performanceScore, getDifficulty(), false));
+      achievements.addAll(AchievementChecker.checkTriviaAchievements(result.correctAnswers, result.totalQuestions,
+            getDifficulty(), result.score));
+      AchievementChecker.displayAchievements(achievements);
 
       return finalTickets;
    }

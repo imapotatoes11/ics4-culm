@@ -6,7 +6,7 @@
  * allows players to boost their earnings temporarily
  *
  * date: jun 15, 2025
- * author: kevin wang
+ * author: wen zheng, kevin wang
  */
 package com.arcade.item;
 

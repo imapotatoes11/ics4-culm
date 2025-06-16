@@ -6,7 +6,7 @@
  * makes games easier by decreasing their difficulty factor
  *
  * date: jun 15, 2025
- * author: kevin wang
+ * author: wen zheng, kevin wang
  */
 package com.arcade.item;
 

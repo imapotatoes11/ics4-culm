@@ -6,7 +6,7 @@
  * extends Item class with usage tracking and pricing
  *
  * date: jun 15, 2025
- * author: kevin wang
+ * author: wen zheng, kevin wang
  */
 package com.arcade.item;
 

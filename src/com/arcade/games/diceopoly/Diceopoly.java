@@ -1,11 +1,25 @@
+/**
+ * Diceopoly.java
+ *
+ * implementation of a dice-based board game for the arcade system
+ * players roll dice to move around a board collecting tickets
+ * features variable board length and dice count based on difficulty
+ * includes support for luck and ticket multiplier items
+ *
+ * date: jun 15, 2025
+ * author: wen zheng, refactored by kevin wang
+ */
 package com.arcade.games.diceopoly;
 
 import com.arcade.games.Game;
 import com.arcade.item.Functional;
 import com.arcade.item.TicketMultiplier;
 import com.arcade.item.Luck;
+import com.arcade.item.AchievementChecker;
+import com.arcade.item.Achievement;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -75,13 +89,21 @@ public class Diceopoly extends Game {
         int baseTickets = calculateTicketReward(performanceScore);
         int finalTickets = ticketMultiplier * baseTickets;
 
-        if (pos >= boardLength - 1) {
+        boolean gameWon = pos >= boardLength - 1;
+        if (gameWon) {
             System.out.println("Congratulations! You reached the end.");
             System.out.println("🎉 VICTORY! You earned " + finalTickets + " tickets!");
         } else {
             System.out.println("You ran out of dice before finishing.");
             System.out.println("You earned " + finalTickets + " tickets for reaching position " + pos + ".");
         }
+
+        // Check and display achievements
+        List<Achievement> achievements = new ArrayList<>();
+        achievements
+                .addAll(AchievementChecker.checkGeneralAchievements(gameWon, performanceScore, getDifficulty(), false));
+        achievements.addAll(AchievementChecker.checkDiceopolyAchievements(pos, boardLength));
+        AchievementChecker.displayAchievements(achievements);
 
         return finalTickets;
     }

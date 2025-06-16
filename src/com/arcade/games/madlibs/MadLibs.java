@@ -6,7 +6,7 @@
  * features multiple story templates and difficulty-based complexity
  *
  * date: jun 15, 2025
- * author: kevin wang
+ * author: wen zheng, refactored by kevin wang
  */
 package com.arcade.games.madlibs;
 
@@ -14,6 +14,8 @@ import java.util.*;
 import com.arcade.games.Game;
 import com.arcade.item.Functional;
 import com.arcade.item.TicketMultiplier;
+import com.arcade.item.AchievementChecker;
+import com.arcade.item.Achievement;
 import com.arcade.util.Bcolors;
 
 /**
@@ -104,7 +106,19 @@ public class MadLibs extends Game {
         displayCompletedStory(completedStory);
 
         // calculate and return ticket reward
-        return calculateFinalReward();
+        int finalTickets = calculateFinalReward();
+
+        // Check and display achievements (MadLibs always completes successfully)
+        boolean gameWon = true;
+        double performanceScore = getDifficulty() >= 7 ? 0.9 : 0.7; // Higher score for harder stories
+
+        List<Achievement> achievements = new ArrayList<>();
+        achievements
+                .addAll(AchievementChecker.checkGeneralAchievements(gameWon, performanceScore, getDifficulty(), false));
+        achievements.addAll(AchievementChecker.checkMadLibsAchievements(gameWon));
+        AchievementChecker.displayAchievements(achievements);
+
+        return finalTickets;
     }
 
     /**

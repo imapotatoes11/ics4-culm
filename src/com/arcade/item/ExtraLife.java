@@ -6,7 +6,7 @@
  * useful for high-difficulty games or when facing failure
  *
  * date: jun 15, 2025
- * author: kevin wang
+ * author: wen zheng, kevin wang
  */
 package com.arcade.item;
 

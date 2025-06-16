@@ -54,7 +54,12 @@ public class ArcadeRunner {
             System.out.print("Enter an option: ");
 
             // parse first character of input as integer for menu selection
-            int option = Integer.parseInt(String.valueOf(sc.nextLine().charAt(0)));
+            String input = sc.nextLine();
+            if (input.isEmpty()) {
+                System.out.println("Please enter a valid option.");
+                continue;
+            }
+            int option = Integer.parseInt(String.valueOf(input.charAt(0)));
             if (option == 3)
                 return;
             if (option == 2) {
@@ -68,7 +73,14 @@ public class ArcadeRunner {
                 } else {
                     // use console for secure password input (hides typing)
                     Console console = System.console();
-                    String password = new String(console.readPassword("Enter Password: "));
+                    String password;
+                    if (console != null) {
+                        password = new String(console.readPassword("Enter Password: "));
+                    } else {
+                        // fallback for testing when console is not available
+                        System.out.print("Enter Password: ");
+                        password = sc.nextLine();
+                    }
 
                     // hash password using sha-256 for security
                     String hashedPassword = generateSHA256(password);
@@ -89,7 +101,14 @@ public class ArcadeRunner {
 
                 // secure password input
                 Console console = System.console();
-                String passwordInput = new String(console.readPassword("Enter Password: "));
+                String passwordInput;
+                if (console != null) {
+                    passwordInput = new String(console.readPassword("Enter Password: "));
+                } else {
+                    // fallback for testing when console is not available
+                    System.out.print("Enter Password: ");
+                    passwordInput = sc.nextLine();
+                }
 
                 // hash password for comparison with stored hash
                 String hashedPassword = generateSHA256(passwordInput);

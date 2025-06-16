@@ -6,7 +6,7 @@
  * provides storage for all player-owned items and currencies
  *
  * date: jun 15, 2025
- * author: kevin wang
+ * author: eddie qu, kevin wang
  */
 package com.arcade.wallet;
 
@@ -23,8 +23,6 @@ public class Wallet {
    private int tickets; // currency earned from playing games
    private List<Functional> powerups; // functional items that can be used in games
    private List<Achievement> trophies; // special achievements stored as trophies
-   // private List<Cosmetic> cosmetics; // cosmetic items (commented out for future
-   // use)
 
    /**
     * gets the number of tokens in the wallet

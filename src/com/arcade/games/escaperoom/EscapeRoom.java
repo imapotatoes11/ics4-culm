@@ -1,12 +1,35 @@
+/**
+ * EscapeRoom.java
+ *
+ * implementation of a text-based escape room game for the arcade system
+ * players solve puzzles and riddles to escape a haunted mansion
+ * features multiple rooms, items, and branching paths
+ * includes performance tracking and dynamic difficulty adjustment
+ * supports functional items like extra lives and luck modifiers
+ *
+ * key game elements:
+ * - puzzle solving with limited attempts
+ * - inventory management with key items
+ * - time-based scoring system
+ * - multiple endings based on performance
+ * - ticket rewards scaled by completion and efficiency
+ *
+ * date: jun 15, 2025
+ * author: kevin wang (eddie wrote a small part of the code)
+ */
+
 package com.arcade.games.escaperoom;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import com.arcade.games.Game;
 import com.arcade.item.ExtraLife;
 import com.arcade.item.Functional;
 import com.arcade.item.Luck;
 import com.arcade.item.TicketMultiplier;
+import com.arcade.item.AchievementChecker;
+import com.arcade.item.Achievement;
 import com.arcade.util.Bcolors;
 
 /**
@@ -15,8 +38,6 @@ import com.arcade.util.Bcolors;
  * This class contains the logic and narrative for a specific escape room
  * scenario.
  * It now correctly extends the Game class and implements item functionality.
- *
- * @author Gemini
  */
 public class EscapeRoom extends Game {
 
@@ -371,6 +392,15 @@ public class EscapeRoom extends Game {
         System.out.println("Performance score: " + String.format("%.1f%%", performanceScore * 100));
 
         System.out.println("You've been awarded " + Bcolors.GREEN + finalTickets + " tickets!" + Bcolors.ENDC);
+
+        // Check and display achievements
+        long completionTimeSeconds = (endTime - startTime) / 1000;
+        List<Achievement> achievements = new ArrayList<>();
+        achievements.addAll(
+                AchievementChecker.checkGeneralAchievements(true, performanceScore, getDifficulty(), usedExtraLife));
+        achievements.addAll(AchievementChecker.checkEscapeRoomAchievements(true, completionTimeSeconds));
+        AchievementChecker.displayAchievements(achievements);
+
         return finalTickets;
     }
 }

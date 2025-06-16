@@ -6,7 +6,7 @@
  * sorting and searching functionality for achievements
  *
  * date: jun 15, 2025
- * author: kevin wang
+ * author: eddie qu, refactored by kevin wang
  */
 package com.arcade.player;
 

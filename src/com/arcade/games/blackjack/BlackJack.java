@@ -12,6 +12,8 @@ package com.arcade.games.blackjack;
 
 import java.util.*;
 import com.arcade.item.Functional;
+import com.arcade.item.AchievementChecker;
+import com.arcade.item.Achievement;
 import com.arcade.util.Bcolors;
 import com.arcade.games.Game;
 
@@ -427,6 +429,17 @@ public class BlackJack extends Game {
             System.out.println("\nYou earned " + Bcolors.BOLD + Bcolors.RED +
                     "0" + Bcolors.ENDC + " tickets this round.");
         }
+
+        // Check and display achievements
+        boolean gameWon = ticketsWon > 0;
+        double performanceScore = gameWon ? (ticketsWon > getTicketReward() ? 1.0 : 0.8) : 0.0;
+
+        List<Achievement> achievements = new ArrayList<>();
+        achievements
+                .addAll(AchievementChecker.checkGeneralAchievements(gameWon, performanceScore, getDifficulty(), false));
+        achievements.addAll(AchievementChecker.checkBlackjackAchievements(gameWon, playerValue, dealerValue));
+
+        AchievementChecker.displayAchievements(achievements);
 
         return ticketsWon;
     }
