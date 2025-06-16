@@ -1,3 +1,13 @@
+/**
+ * Trivia.java
+ *
+ * implementation of a trivia question game for the arcade system
+ * features difficulty-based questions with scoring system and item support
+ * includes luck items and ticket multipliers for enhanced gameplay
+ *
+ * date: jun 15, 2025
+ * author: kevin wang
+ */
 package com.arcade.games.trivia;
 
 import com.arcade.games.Game;
@@ -7,11 +17,18 @@ import com.arcade.item.TicketMultiplier;
 
 import java.util.*;
 
+/**
+ * trivia game implementation extending the base Game class
+ * presents multiple choice questions based on difficulty level
+ * supports functional items like luck and ticket multipliers
+ */
 public class Trivia extends Game {
-   private Question[] questionList = new Question[30];
-   private int ticketMultiplier = 1;
+   private Question[] questionList = new Question[30]; // array holding all available questions
+   private int ticketMultiplier = 1; // multiplier for final ticket rewards
 
-   // move all question text, difficulty, and answer into one place
+   // centralized question data: [question text, difficulty level, correct answer]
+   // this design makes it easier to add/modify questions without changing code
+   // structure
    private static final Object[][] QUESTION_DATA = new Object[][] {
          { "What color is grass? \nA) Blue \nB) Green \nC) Red \nD) Yellow\n", 1, 'b' },
          { "What vehicle can fly? \nA) Car \nB) Train \nC) Plane \nD) Submarine\n", 1, 'c' },
@@ -61,101 +78,204 @@ public class Trivia extends Game {
                10, 'c' },
    };
 
+   /**
+    * constructor for creating a trivia game with custom parameters
+    * initializes all questions from the centralized data array
+    * 
+    * @param id             unique identifier for this game instance
+    * @param title          display name for the game
+    * @param difficulty     difficulty level (1-10, determines which questions are
+    *                       asked)
+    * @param requiredTokens cost in tokens to play
+    * @param ticketReward   base reward in tickets for winning
+    */
    public Trivia(int id, String title, int difficulty, int requiredTokens, int ticketReward) {
       super(id, title, difficulty, requiredTokens, ticketReward);
-      // replace manual setup with one loop
+      // initialize questions using data from the static array
+      // this loop converts the generic object array into proper Question objects
       for (int i = 0; i < questionList.length; i++) {
          questionList[i] = new Question();
-         Object[] d = QUESTION_DATA[i];
-         questionList[i].setQuestion((String) d[0]);
-         questionList[i].setDifficultyLevel((Integer) d[1]);
-         questionList[i].setAnswer((Character) d[2]);
+         Object[] d = QUESTION_DATA[i]; // get data for this question
+         questionList[i].setQuestion((String) d[0]); // question text
+         questionList[i].setDifficultyLevel((Integer) d[1]); // difficulty level
+         questionList[i].setAnswer((Character) d[2]); // correct answer
       }
    }
 
+   /**
+    * default constructor for trivia game
+    * creates a trivia game with default settings for testing
+    */
+   public Trivia() {
+      super(1, "Trivia", 10, 10, 20);
+   }
+
+   /**
+    * gets the array of all available questions
+    * 
+    * @return array of Question objects
+    */
    public Question[] getQuestionList() {
       return questionList;
    }
 
-   public int promptQuestion() {
-      char chosenAnswer;
-      int count = 0;
-      Scanner sc = new Scanner(System.in);
-      for (int i = 0; i < questionList.length; i++) {
-         if (questionList[i].getDifficultyLevel() == getDifficulty()) {
-            System.out.print(questionList[i].getQuestion());
-            chosenAnswer = sc.nextLine().charAt(0);
-            chosenAnswer = Character.toLowerCase(chosenAnswer);
-            if (chosenAnswer == questionList[i].getAnswer()) {
-               if (questionList[i].getDifficultyLevel() <= 3) {
-                  count += 1;
-               } else if (questionList[i].getDifficultyLevel() <= 6) {
-                  count += 3;
-               } else {
-                  count += 5;
-               }
-            } else {
-               if (questionList[i].getDifficultyLevel() <= 3) {
-                  count -= 1;
-               } else if (questionList[i].getDifficultyLevel() <= 6) {
-                  count -= 3;
-               } else {
-                  count -= 5;
-               }
-            }
-         }
-      }
-
-      return count;
-   }
-
+   /**
+    * main game loop for trivia
+    * processes functional items, runs questions, and calculates rewards
+    * 
+    * @param items list of functional items player can use during the game
+    * @return number of tickets won based on performance
+    */
    public int runGame(ArrayList<Functional> items) {
-      for (Functional f: items) {
-         //If user uses luck item, decreases difficulty.
-         if (f instanceof Luck){
+      // process functional items before starting the game
+      for (Functional f : items) {
+         // luck item reduces difficulty by 2 levels (minimum 1)
+         if (f instanceof Luck) {
             f.activate();
-            if (getDifficulty() > 3){
-               setDifficulty(getDifficulty() -2);
-            }else{
-               setDifficulty(1);
+            if (getDifficulty() > 3) {
+               setDifficulty(getDifficulty() - 2);
+            } else {
+               setDifficulty(1); // ensure difficulty never goes below 1
             }
-            //If user uses ticketmultiplier item, increases the ticket multiplier
-            //And by extension the num of tickets they win
-         } else if (f instanceof TicketMultiplier){
+            // ticket multiplier increases final reward
+         } else if (f instanceof TicketMultiplier) {
             f.activate();
             ticketMultiplier = TicketMultiplier.MULTIPLIER;
-            //If any other item is used, states that the item is unusable
-         } else{
-            System.out.println("Sorry, you can't use this power up for Diceopoly.");
+            // reject unusable items with feedback
+         } else {
+            System.out.println("Sorry, you can't use this power up for Trivia.");
          }
       }
 
-
-
-
-
-
-
-
-
-      int originalReward = super.getTicketReward();
-
       System.out.println("Welcome to Trivia!");
-      System.out.println("Your calculated difficulty is " + getDifficulty() + ". Here are your 3 questions:");
+      System.out.println("Your calculated difficulty is " + getDifficulty() + ". Here are your questions:");
 
-      int gameOutcome = promptQuestion();
-      //Runs the game, then sets ticket reward to be the base ticket reward, plus the tickets earned
-      //by the game, all multiplied by the ticket multiplier
-      setTicketReward((getTicketReward() + promptQuestion())*ticketMultiplier);
+      // run the actual trivia questions and get results
+      TriviaResult result = runTriviaQuestions();
 
-      System.out.printf("Game Over! You've earned %d tickets!", getTicketReward());
+      // calculate performance-based ticket reward
+      double performanceScore = calculatePerformanceScore(result);
+      int baseTickets = calculateTicketReward(performanceScore);
+      int finalTickets = baseTickets * ticketMultiplier; // apply multiplier
 
-      return getTicketReward();
+      System.out.printf("Game Over! You answered %d/%d questions correctly with a score of %d!\n",
+            result.correctAnswers, result.totalQuestions, result.score);
+      System.out.printf("You've earned %d tickets!\n", finalTickets);
+
+      return finalTickets;
    }
 
+   /**
+    * container class for trivia game results
+    * holds all the statistics from a completed trivia session
+    */
+   private static class TriviaResult {
+      int score; // total points earned (can be negative)
+      int correctAnswers; // number of questions answered correctly
+      int totalQuestions; // total number of questions asked
+
+      /**
+       * constructor for trivia result data
+       * 
+       * @param score          total points earned
+       * @param correctAnswers number of correct answers
+       * @param totalQuestions total questions asked
+       */
+      TriviaResult(int score, int correctAnswers, int totalQuestions) {
+         this.score = score;
+         this.correctAnswers = correctAnswers;
+         this.totalQuestions = totalQuestions;
+      }
+   }
+
+   /**
+    * runs through all questions matching the current difficulty level
+    * handles user input, scoring, and provides feedback for each answer
+    * 
+    * @return TriviaResult object containing game statistics
+    */
+   public TriviaResult runTriviaQuestions() {
+      char chosenAnswer;
+      int score = 0; // running total of points (can go negative)
+      int correctAnswers = 0;
+      int totalQuestions = 0;
+      Scanner sc = new Scanner(System.in);
+
+      // iterate through all questions to find ones matching current difficulty
+      for (int i = 0; i < questionList.length; i++) {
+         if (questionList[i].getDifficultyLevel() == getDifficulty()) {
+            totalQuestions++;
+            System.out.print(questionList[i].getQuestion());
+            chosenAnswer = sc.nextLine().charAt(0);
+            chosenAnswer = Character.toLowerCase(chosenAnswer); // normalize to lowercase
+
+            if (chosenAnswer == questionList[i].getAnswer()) {
+               correctAnswers++;
+               System.out.println("✅ Correct!");
+               // scoring system: easier questions worth fewer points
+               if (questionList[i].getDifficultyLevel() <= 3) {
+                  score += 1; // easy questions worth 1 point
+               } else if (questionList[i].getDifficultyLevel() <= 6) {
+                  score += 3; // medium questions worth 3 points
+               } else {
+                  score += 5; // hard questions worth 5 points
+               }
+            } else {
+               System.out.println("❌ Wrong! The correct answer was " +
+                     questionList[i].getAnswer());
+               // wrong answers subtract points (creates risk/reward)
+               if (questionList[i].getDifficultyLevel() <= 3) {
+                  score -= 1;
+               } else if (questionList[i].getDifficultyLevel() <= 6) {
+                  score -= 3;
+               } else {
+                  score -= 5;
+               }
+            }
+         }
+      }
+
+      return new TriviaResult(score, correctAnswers, totalQuestions);
+   }
+
+   /**
+    * calculates performance score based on trivia results
+    * combines accuracy percentage with score bonus for comprehensive evaluation
+    * 
+    * @param result the TriviaResult containing game statistics
+    * @return performance score from 0.0 (worst) to 1.0 (best)
+    */
+   private double calculatePerformanceScore(TriviaResult result) {
+      if (result.totalQuestions == 0) {
+         return 0.0; // no questions answered
+      }
+
+      // base score from correct answers percentage (0.0 to 0.7)
+      double accuracyScore = (double) result.correctAnswers / result.totalQuestions * 0.7;
+
+      // bonus for positive total score (0.0 to 0.2)
+      double scoreBonus = 0.0;
+      if (result.score > 0) {
+         // normalize score bonus based on maximum possible score for this difficulty
+         int maxPossibleScore = result.totalQuestions *
+               (getDifficulty() <= 3 ? 1 : getDifficulty() <= 6 ? 3 : 5);
+         scoreBonus = Math.min(0.2, (double) result.score / maxPossibleScore * 0.2);
+      }
+
+      // difficulty bonus: harder difficulties get slight bonus (0.0 to 0.1)
+      double difficultyBonus = (getDifficulty() - 1) / 90.0; // scales from 0 to 0.1
+
+      return Math.max(0.0, Math.min(1.0, accuracyScore + scoreBonus + difficultyBonus));
+   }
+
+   /**
+    * main method for testing the trivia game independently
+    * creates a game instance and runs it with empty items list
+    * 
+    * @param args command line arguments (not used)
+    */
    public static void main(String[] args) {
-      Trivia game = new Trivia(3, "Trivia", 5, 2, 10);
-      ArrayList<Functional> items = new ArrayList<>(); // no items used here
-      int earned = game.runGame(items);
+      Trivia t = new Trivia();
+      t.runGame(new ArrayList<>());
    }
 }

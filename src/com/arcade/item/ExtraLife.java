@@ -1,38 +1,55 @@
-/*
+/**
  * ExtraLife.java
  *
- * Date: 06 06, 2025
+ * functional item that provides additional chances in games
+ * extends Functional class to give players extra attempts
+ * useful for high-difficulty games or when facing failure
  *
- * Copyright 2025 Kevin Wang
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy
- * of the license at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the license is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * license for the specific language governing permissions and limitations under
- * the license.
+ * date: jun 15, 2025
+ * author: kevin wang
  */
 package com.arcade.item;
 
 import java.io.*;
 import java.util.*;
 
+/**
+ * functional item that grants an extra life or chance in games
+ * allows players to continue playing after failure conditions
+ * can be purchased with tickets and has limited uses
+ */
 public class ExtraLife extends Functional {
+
+    /**
+     * constructor for creating an extra life item with custom parameters
+     * 
+     * @param name    the display name of the item
+     * @param numUses the number of times this item can be used
+     * @param price   the cost in tickets to purchase this item
+     */
     public ExtraLife(String name, int numUses, int price) {
         super(name, numUses, price);
     }
 
+    /**
+     * default constructor for creating a standard extra life item
+     * uses default values: name "Extra Life", 1 use, costs 10 tickets
+     */
     public ExtraLife() {
-        super("Extra Life", 1, 10); // Default values for an extra life
+        super("Extra Life", 1, 10); // default values for an extra life
     }
 
+    /**
+     * activates the extra life item
+     * note: current implementation seems incorrect - it adds uses instead of
+     * consuming them
+     * should probably integrate with game logic to provide actual extra life
+     * functionality
+     */
     public void activate() {
-        this.setNumUses(getNumUses() + 1); // Increment the number of uses
+        this.setNumUses(getNumUses() + 1); // increment the number of uses (seems like a bug)
+        // this implementation appears incorrect - should decrease uses and provide
+        // extra life
+        // actual extra life logic would need to be integrated with individual games
     }
-
 }
