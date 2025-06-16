@@ -291,9 +291,10 @@ public class ArcadeManager {
                 // create player object with loaded data
                 Player p = new Player(name, username.toLowerCase(), password, age);
                 players.add(p);
-                System.out.println(
-                        "Found player: " + p.getUsername() + ", Age: " + p.getAge() + ", Name: " + p.getName());
-                System.out.println("Player password: " + p.getPassword()); // debugging line
+                // System.out.println(
+                // "Found player: " + p.getUsername() + ", Age: " + p.getAge() + ", Name: " +
+                // p.getName());
+                // System.out.println("Player password: " + p.getPassword()); // debugging line
             }
         } catch (IOException e) {
             System.err.println("Error loading from file: " + e.getMessage());
