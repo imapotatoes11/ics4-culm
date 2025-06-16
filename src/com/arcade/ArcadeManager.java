@@ -22,6 +22,7 @@ import com.arcade.games.pokeman.PokemanGame;
 import com.arcade.games.diceopoly.Diceopoly;
 import com.arcade.games.escaperoom.EscapeRoom;
 import com.arcade.games.trivia.Trivia;
+import com.arcade.games.madlibs.MadLibs;
 import com.arcade.player.Player;
 import com.arcade.item.Achievement;
 import com.arcade.item.Functional;
@@ -80,6 +81,11 @@ public class ArcadeManager {
         escapeRoom.setMinTicketReward(25);
         escapeRoom.setMaxTicketReward(60);
         games.add(escapeRoom);
+
+        MadLibs madLibs = new MadLibs(6, "Mad Libs", 5, 12, 18);
+        madLibs.setMinTicketReward(12);
+        madLibs.setMaxTicketReward(25);
+        games.add(madLibs);
     }
 
     /**
