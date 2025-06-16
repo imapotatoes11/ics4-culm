@@ -20,6 +20,9 @@ import com.arcade.player.Player;
 import com.arcade.games.Game;
 import com.arcade.item.Functional;
 import com.arcade.item.Achievement;
+import com.arcade.item.Luck;
+import com.arcade.item.ExtraLife;
+import com.arcade.item.TicketMultiplier;
 
 /**
  * main class that runs the arcade gaming system
@@ -258,7 +261,9 @@ public class ArcadeRunner {
             System.out.println("  1. View your profile");
             System.out.println("  2. Play a game");
             System.out.println("  3. View items/achievements");
-            System.out.println("  4. Log out");
+            System.out.println("  4. Buy tokens");
+            System.out.println("  5. Shop for items/powerups");
+            System.out.println("  6. Log out");
             System.out.print("Enter an option: ");
 
             try {
@@ -274,6 +279,12 @@ public class ArcadeRunner {
                         viewItemsAndAchievements(arcadeManager, sc);
                         break;
                     case 4:
+                        buyTokens(arcadeManager, sc);
+                        break;
+                    case 5:
+                        shopForItems(arcadeManager, sc);
+                        break;
+                    case 6:
                         running = false;
                         System.out.println("Thank you for playing! Goodbye, " +
                                 arcadeManager.getPlayer().getUsername() + "!");
@@ -399,9 +410,27 @@ public class ArcadeRunner {
 
                 System.out.println("\nStarting " + selectedGame.getTitle() + "...");
 
+                // gather available items from player's inventory
+                ArrayList<Functional> availableItems = new ArrayList<>();
+                if (player.getWallet().getPowerups() != null) {
+                    for (Functional item : player.getWallet().getPowerups()) {
+                        if (item.getNumUses() > 0) {
+                            availableItems.add(item);
+                        }
+                    }
+                }
+
+                // let player choose items to use (simplified for now - could add selection
+                // menu)
+                ArrayList<Functional> itemsToUse = new ArrayList<>();
+                if (!availableItems.isEmpty()) {
+                    System.out.println("\n🎮 You have " + availableItems.size() + " powerups available!");
+                    System.out.println("Your powerups will be automatically used during the game.");
+                    itemsToUse.addAll(availableItems);
+                }
+
                 // polymorphism: calling runGame on different game types
-                ArrayList<Functional> items = new ArrayList<>(); // empty items list for now
-                int ticketsWon = selectedGame.runGame(items);
+                int ticketsWon = selectedGame.runGame(itemsToUse);
 
                 // process the transaction (deduct tokens, award tickets)
                 arcadeManager.processGameTransaction(selectedGame, ticketsWon);
@@ -596,5 +625,241 @@ public class ArcadeRunner {
             hexString.append(hex);
         }
         return hexString.toString();
+    }
+
+    /**
+     * handles token purchasing functionality
+     * simulates buying tokens with real money
+     * provides different token package options for players
+     * 
+     * @param arcadeManager the arcade manager instance
+     * @param sc            scanner for user input
+     */
+    private static void buyTokens(ArcadeManager arcadeManager, Scanner sc) {
+        Player player = arcadeManager.getPlayer();
+
+        System.out.println("\n\n=== ARCADE > MAIN MENU > BUY TOKENS ===");
+        System.out.println("💳 Current balance: " + player.getWallet().getTokens() + " tokens, " +
+                player.getWallet().getTickets() + " tickets");
+        System.out.println("\n💰 TOKEN PACKAGES AVAILABLE:");
+        System.out.println("  1. Small Pack - 25 tokens ($5.00)");
+        System.out.println("  2. Medium Pack - 60 tokens ($10.00) [BEST VALUE!]");
+        System.out.println("  3. Large Pack - 100 tokens ($15.00)");
+        System.out.println("  4. Mega Pack - 200 tokens ($25.00)");
+        System.out.println("  5. Cancel purchase");
+        System.out.print("Select a package: ");
+
+        try {
+            int choice = Integer.parseInt(sc.nextLine());
+            int tokensToAdd = 0;
+            String packageName = "";
+            String price = "";
+
+            switch (choice) {
+                case 1:
+                    tokensToAdd = 25;
+                    packageName = "Small Pack";
+                    price = "$5.00";
+                    break;
+                case 2:
+                    tokensToAdd = 60;
+                    packageName = "Medium Pack";
+                    price = "$10.00";
+                    break;
+                case 3:
+                    tokensToAdd = 100;
+                    packageName = "Large Pack";
+                    price = "$15.00";
+                    break;
+                case 4:
+                    tokensToAdd = 200;
+                    packageName = "Mega Pack";
+                    price = "$25.00";
+                    break;
+                case 5:
+                    System.out.println("Purchase cancelled.");
+                    return;
+                default:
+                    System.out.println("Invalid selection.");
+                    return;
+            }
+
+            // Confirm purchase
+            System.out.println("\n💰 You selected: " + packageName + " (" + tokensToAdd + " tokens for " + price + ")");
+            System.out.print("Confirm purchase? (y/n): ");
+            String confirm = sc.nextLine().toLowerCase();
+
+            if (confirm.startsWith("y")) {
+                // Simulate payment processing
+                System.out.println("💳 Processing payment...");
+                try {
+                    Thread.sleep(1000); // Simulate processing delay
+                } catch (InterruptedException e) {
+                    // Handle interruption
+                }
+
+                // Add tokens to player's wallet
+                player.addTokens(tokensToAdd);
+
+                System.out.println("✅ Payment successful! " + tokensToAdd + " tokens added to your wallet.");
+                System.out.println("💳 New balance: " + player.getWallet().getTokens() + " tokens, " +
+                        player.getWallet().getTickets() + " tickets");
+
+                // Award achievement for first purchase
+                Achievement purchaseAchievement = new Achievement("Big Spender",
+                        "Purchased token package: " + packageName);
+                arcadeManager.getPlayer().addAchievement(purchaseAchievement);
+            } else {
+                System.out.println("Purchase cancelled.");
+            }
+
+        } catch (NumberFormatException e) {
+            System.out.println("Please enter a valid number.");
+        }
+    }
+
+    /**
+     * handles item and powerup shopping functionality
+     * allows players to purchase functional items using tickets
+     * provides different types of powerups with various effects
+     * 
+     * @param arcadeManager the arcade manager instance
+     * @param sc            scanner for user input
+     */
+    private static void shopForItems(ArcadeManager arcadeManager, Scanner sc) {
+        Player player = arcadeManager.getPlayer();
+
+        boolean shopping = true;
+        while (shopping) {
+            System.out.println("\n\n=== ARCADE > MAIN MENU > ITEM SHOP ===");
+            System.out.println("💳 Current balance: " + player.getWallet().getTokens() + " tokens, " +
+                    player.getWallet().getTickets() + " tickets");
+            System.out.println("\n🛍️ ITEMS AVAILABLE FOR PURCHASE:");
+            System.out.println("  1. 🍀 Luck Charm - Reduces game difficulty (3 uses, 20 tickets)");
+            System.out.println("  2. ❤️  Extra Life - Gives second chance in games (1 use, 15 tickets)");
+            System.out.println("  3. 🎫 Ticket Multiplier - Doubles ticket rewards (1 use, 25 tickets)");
+            System.out.println("  4. 🍀 Super Luck Charm - Greatly reduces difficulty (2 uses, 35 tickets)");
+            System.out.println("  5. ❤️  Life Bundle - Multiple extra lives (3 uses, 40 tickets)");
+            System.out.println("  6. 🎫 Mega Multiplier - Triples ticket rewards (1 use, 50 tickets)");
+            System.out.println("  7. View your current items");
+            System.out.println("  8. Back to main menu");
+            System.out.print("Select an option: ");
+
+            try {
+                int choice = Integer.parseInt(sc.nextLine());
+
+                switch (choice) {
+                    case 1:
+                        purchaseItem(player, new Luck("Luck Charm", 3, 20, 2), sc);
+                        break;
+                    case 2:
+                        purchaseItem(player, new ExtraLife("Extra Life", 1, 15), sc);
+                        break;
+                    case 3:
+                        purchaseItem(player, new TicketMultiplier("Ticket Multiplier", 1, 25), sc);
+                        break;
+                    case 4:
+                        purchaseItem(player, new Luck("Super Luck Charm", 2, 35, 3), sc);
+                        break;
+                    case 5:
+                        purchaseItem(player, new ExtraLife("Life Bundle", 3, 40), sc);
+                        break;
+                    case 6:
+                        purchaseItem(player, new TicketMultiplier("Mega Multiplier", 1, 50), sc);
+                        break;
+                    case 7:
+                        viewCurrentItems(player);
+                        break;
+                    case 8:
+                        shopping = false;
+                        break;
+                    default:
+                        System.out.println("Invalid selection.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
+    }
+
+    /**
+     * handles the purchase of a specific functional item
+     * validates player has enough tickets and processes the transaction
+     * 
+     * @param player the player making the purchase
+     * @param item   the functional item to purchase
+     * @param sc     scanner for user input
+     */
+    private static void purchaseItem(Player player, Functional item, Scanner sc) {
+        System.out.println("\n💰 Item: " + item.getName());
+        System.out.println("💰 Price: " + item.getPrice() + " tickets");
+        System.out.println("💰 Uses: " + item.getNumUses());
+
+        if (player.getWallet().getTickets() < item.getPrice()) {
+            System.out.println("❌ You don't have enough tickets to buy this item!");
+            System.out.println("   Required: " + item.getPrice() + " tickets");
+            System.out.println("   You have: " + player.getWallet().getTickets() + " tickets");
+            return;
+        }
+
+        System.out.print("Confirm purchase? (y/n): ");
+        String confirm = sc.nextLine().toLowerCase();
+
+        if (confirm.startsWith("y")) {
+            // Deduct tickets
+            player.getWallet().setTickets(player.getWallet().getTickets() - item.getPrice());
+
+            // Add item to player's powerups (initialize list if needed)
+            if (player.getWallet().getPowerups() == null) {
+                player.getWallet().setPowerups(new ArrayList<>());
+            }
+            player.getWallet().getPowerups().add(item);
+
+            System.out.println("✅ Purchase successful! " + item.getName() + " added to your inventory.");
+            System.out.println("💳 New balance: " + player.getWallet().getTokens() + " tokens, " +
+                    player.getWallet().getTickets() + " tickets");
+
+            // Award achievement for item purchase
+            Achievement shopAchievement = new Achievement("Savvy Shopper",
+                    "Purchased item: " + item.getName());
+            player.addAchievement(shopAchievement);
+        } else {
+            System.out.println("Purchase cancelled.");
+        }
+    }
+
+    /**
+     * displays all items currently owned by the player
+     * shows powerups and trophies with their details
+     * 
+     * @param player the player whose items to display
+     */
+    private static void viewCurrentItems(Player player) {
+        System.out.println("\n\n=== ARCADE > MAIN MENU > ITEM SHOP > YOUR ITEMS ===");
+        System.out.println("💳 Current balance: " + player.getWallet().getTokens() + " tokens, " +
+                player.getWallet().getTickets() + " tickets");
+
+        // Display powerups
+        if (player.getWallet().getPowerups() != null && !player.getWallet().getPowerups().isEmpty()) {
+            System.out.println("\n🎮 YOUR POWERUPS:");
+            for (Functional powerup : player.getWallet().getPowerups()) {
+                System.out.println("   - " + powerup.getName() + " (Uses: " + powerup.getNumUses() +
+                        ", Original Price: " + powerup.getPrice() + " tickets)");
+            }
+        } else {
+            System.out.println("\n🎮 YOUR POWERUPS: None");
+            System.out.println("   Purchase some powerups to enhance your gaming experience!");
+        }
+
+        // Display trophies
+        if (player.getWallet().getTrophies() != null && !player.getWallet().getTrophies().isEmpty()) {
+            System.out.println("\n🏆 YOUR TROPHIES:");
+            for (Achievement trophy : player.getWallet().getTrophies()) {
+                System.out.println("   - " + trophy.getName() + ": " + trophy.getDescription());
+            }
+        } else {
+            System.out.println("\n🏆 YOUR TROPHIES: None");
+            System.out.println("   Complete special achievements to earn trophies!");
+        }
     }
 }
