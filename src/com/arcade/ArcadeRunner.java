@@ -56,13 +56,20 @@ public class ArcadeRunner {
             System.out.println("  3. Exit");
             System.out.print("Enter an option: ");
 
-            // parse first character of input as integer for menu selection
+            // parse input as integer for menu selection
             String input = sc.nextLine();
             if (input.isEmpty()) {
                 System.out.println("Please enter a valid option.");
                 continue;
             }
-            int option = Integer.parseInt(String.valueOf(input.charAt(0)));
+
+            int option;
+            try {
+                option = Integer.parseInt(input.trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+                continue;
+            }
             if (option == 3)
                 return;
             if (option == 2) {
@@ -174,11 +181,11 @@ public class ArcadeRunner {
                         arcadeManager.displayAllPlayers();
                         break;
                     case 2:
-                        // demonstrates quick sort algorithm
+                        // demonstrates selection sort algorithm
                         arcadeManager.displayPlayersSortedByUsername();
                         break;
                     case 3:
-                        // demonstrates merge sort algorithm
+                        // demonstrates insertion sort algorithm
                         arcadeManager.displayPlayersSortedByAge();
                         break;
                     case 4:

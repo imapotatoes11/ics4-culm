@@ -245,6 +245,8 @@ public class ArcadeManager {
                 writer.write(p.getPassword() + "\n");
                 writer.write(p.getAge() + "\n");
                 writer.write(p.getName() + "\n");
+                writer.write(p.getWallet().getTokens() + "\n");
+                writer.write(p.getWallet().getTickets() + "\n");
                 writer.write(":\n"); // separator between players
             }
             writer.write("end\n"); // end of file marker
@@ -258,6 +260,8 @@ public class ArcadeManager {
     /**
      * loads all player data from the persistent storage file
      * parses the structured format and creates player objects
+     * supports both old format (4 fields) and new format (6 fields) for backward
+     * compatibility
      * 
      * @return list of all players loaded from file
      */
@@ -273,14 +277,19 @@ public class ArcadeManager {
                 if (line.equals(":"))
                     continue;
 
-                // read player data in order: username, password, age, name
+                // read basic player data: username, password, age, name
                 String username = line;
                 String password = reader.readLine();
                 String ageLine = reader.readLine();
                 String name = reader.readLine();
-                reader.readLine(); // consume the ":" separator after each record
+
+                // peek at the next line to determine format
+                String nextLine = reader.readLine();
 
                 int age;
+                int tokens = 50; // default starting tokens
+                int tickets = 0; // default starting tickets
+
                 try {
                     age = Integer.parseInt(ageLine);
                 } catch (NumberFormatException e) {
@@ -288,17 +297,48 @@ public class ArcadeManager {
                     continue;
                 }
 
+                // check if we have the new format (tokens and tickets) or old format
+                if (nextLine != null && !nextLine.equals(":")) {
+                    // new format: nextLine should be tokens
+                    try {
+                        tokens = Integer.parseInt(nextLine);
+                        String ticketsLine = reader.readLine();
+                        if (ticketsLine != null && !ticketsLine.equals(":")) {
+                            tickets = Integer.parseInt(ticketsLine);
+                            reader.readLine(); // consume the ":" separator
+                        }
+                    } catch (NumberFormatException e) {
+                        // if parsing fails, treat as old format and reset to defaults
+                        System.out.println("Note: Using default wallet values for user " + username +
+                                " (old format detected)");
+                        tokens = 50;
+                        tickets = 0;
+                        // nextLine was ":", so we don't need to read another separator
+                    }
+                }
+                // if nextLine was ":", we already have the separator and use default values
+
                 // create player object with loaded data
                 Player p = new Player(name, username.toLowerCase(), password, age);
+                // set wallet balances
+                p.getWallet().setTokens(tokens);
+                p.getWallet().setTickets(tickets);
                 players.add(p);
                 // System.out.println(
                 // "Found player: " + p.getUsername() + ", Age: " + p.getAge() + ", Name: " +
-                // p.getName());
-                // System.out.println("Player password: " + p.getPassword()); // debugging line
+                // p.getName() + ", Tokens: " + tokens + ", Tickets: " + tickets);
             }
         } catch (IOException e) {
             System.err.println("Error loading from file: " + e.getMessage());
         }
+
+        // if we loaded players and detected old format, automatically save in new
+        // format
+        if (!players.isEmpty()) {
+            this.players = players;
+            saveToFile(); // this will save in the new format with tokens and tickets
+        }
+
         return players;
     }
 
@@ -367,151 +407,81 @@ public class ArcadeManager {
     }
 
     /**
-     * sorts players by username using quick sort algorithm
-     * demonstrates recursion and efficient sorting
+     * sorts players by username using selection sort algorithm
+     * demonstrates simple sorting with o(n²) complexity
      * modifies the internal players list
      */
     public void sortPlayersByUsername() {
         this.players = loadFromFile();
         Player[] playerArray = players.toArray(new Player[0]);
-        quickSortPlayers(playerArray, 0, playerArray.length - 1);
+        selectionSortPlayersByUsername(playerArray);
         this.players = Arrays.asList(playerArray);
     }
 
     /**
-     * recursive quick sort implementation for player objects
-     * sorts players alphabetically by username
+     * selection sort implementation for player objects by username
+     * finds the minimum element and places it at the beginning
      * 
-     * @param arr  the array of players to sort
-     * @param low  the starting index for this partition
-     * @param high the ending index for this partition
+     * @param arr the array of players to sort
      */
-    private void quickSortPlayers(Player[] arr, int low, int high) {
-        if (low < high) {
-            // partition the array and get the pivot index
-            int pi = partitionPlayers(arr, low, high);
+    private void selectionSortPlayersByUsername(Player[] arr) {
+        int n = arr.length;
 
-            // recursively sort elements before and after partition
-            quickSortPlayers(arr, low, pi - 1); // recursion for left side
-            quickSortPlayers(arr, pi + 1, high); // recursion for right side
-        }
-    }
+        // traverse through all array elements
+        for (int i = 0; i < n - 1; i++) {
+            // find the minimum element in the remaining unsorted array
+            int minIndex = i;
+            for (int j = i + 1; j < n; j++) {
+                if (arr[j].getUsername().compareToIgnoreCase(arr[minIndex].getUsername()) < 0) {
+                    minIndex = j;
+                }
+            }
 
-    /**
-     * partitions the player array for quick sort
-     * uses the last element as pivot and arranges elements
-     * 
-     * @param arr  the array to partition
-     * @param low  the starting index
-     * @param high the ending index (pivot location)
-     * @return the final position of the pivot
-     */
-    private int partitionPlayers(Player[] arr, int low, int high) {
-        String pivot = arr[high].getUsername();
-        int i = (low - 1); // index of smaller element
-
-        for (int j = low; j < high; j++) {
-            // if current element is smaller than or equal to pivot
-            if (arr[j].getUsername().compareToIgnoreCase(pivot) <= 0) {
-                i++;
-                // swap elements
-                Player temp = arr[i];
-                arr[i] = arr[j];
-                arr[j] = temp;
+            // swap the found minimum element with the first element
+            if (minIndex != i) {
+                Player temp = arr[minIndex];
+                arr[minIndex] = arr[i];
+                arr[i] = temp;
             }
         }
-
-        // swap the pivot element with the element at i+1
-        Player temp = arr[i + 1];
-        arr[i + 1] = arr[high];
-        arr[high] = temp;
-
-        return i + 1;
     }
 
     /**
-     * sorts players by age using merge sort algorithm
-     * demonstrates another recursive sorting approach
+     * sorts players by age using insertion sort algorithm
+     * demonstrates simple sorting by building the sorted array one element at a
+     * time
      * modifies the internal players list
      */
     public void sortPlayersByAge() {
         this.players = loadFromFile();
         Player[] playerArray = players.toArray(new Player[0]);
-        mergeSortPlayersByAge(playerArray, 0, playerArray.length - 1);
+        insertionSortPlayersByAge(playerArray);
         this.players = Arrays.asList(playerArray);
     }
 
     /**
-     * recursive merge sort implementation for player objects by age
-     * divides the array into smaller parts and merges them back sorted
+     * insertion sort implementation for player objects by age
+     * builds the final sorted array one element at a time
      * 
-     * @param arr   the array of players to sort
-     * @param left  the starting index
-     * @param right the ending index
+     * @param arr the array of players to sort
      */
-    private void mergeSortPlayersByAge(Player[] arr, int left, int right) {
-        if (left < right) {
-            // find the middle point to divide the array
-            int mid = left + (right - left) / 2;
+    private void insertionSortPlayersByAge(Player[] arr) {
+        int n = arr.length;
 
-            // recursively sort first and second halves
-            mergeSortPlayersByAge(arr, left, mid); // recursion for left half
-            mergeSortPlayersByAge(arr, mid + 1, right); // recursion for right half
+        // traverse from the second element to the end
+        for (int i = 1; i < n; i++) {
+            Player key = arr[i];
+            int j = i - 1;
 
-            // merge the sorted halves
-            mergePlayersByAge(arr, left, mid, right);
-        }
-    }
-
-    /**
-     * merges two sorted subarrays of players by age
-     * combines left and right subarrays in sorted order
-     * 
-     * @param arr   the main array containing both subarrays
-     * @param left  the starting index of left subarray
-     * @param mid   the ending index of left subarray
-     * @param right the ending index of right subarray
-     */
-    private void mergePlayersByAge(Player[] arr, int left, int mid, int right) {
-        // calculate sizes of the two subarrays
-        int n1 = mid - left + 1;
-        int n2 = right - mid;
-
-        // create temporary arrays for left and right subarrays
-        Player[] leftArr = new Player[n1];
-        Player[] rightArr = new Player[n2];
-
-        // copy data to temporary arrays
-        System.arraycopy(arr, left, leftArr, 0, n1);
-        System.arraycopy(arr, mid + 1, rightArr, 0, n2);
-
-        // merge the temporary arrays back into arr[left..right]
-        int i = 0, j = 0, k = left;
-
-        // compare and merge elements from both arrays
-        while (i < n1 && j < n2) {
-            if (leftArr[i].getAge() <= rightArr[j].getAge()) {
-                arr[k] = leftArr[i];
-                i++;
-            } else {
-                arr[k] = rightArr[j];
-                j++;
+            // move elements of arr[0..i-1] that are greater than key
+            // one position ahead of their current position
+            while (j >= 0 && arr[j].getAge() > key.getAge()) {
+                arr[j + 1] = arr[j];
+                j = j - 1;
             }
-            k++;
-        }
 
-        // copy remaining elements from left array
-        while (i < n1) {
-            arr[k] = leftArr[i];
-            i++;
-            k++;
-        }
-
-        // copy remaining elements from right array
-        while (j < n2) {
-            arr[k] = rightArr[j];
-            j++;
-            k++;
+            // place key at its correct position
+            arr[j + 1] = key;
         }
     }
 
@@ -624,7 +594,7 @@ public class ArcadeManager {
 
     /**
      * displays all players sorted alphabetically by username
-     * uses quick sort algorithm for sorting
+     * uses selection sort algorithm for sorting
      */
     public void displayPlayersSortedByUsername() {
         sortPlayersByUsername();
@@ -634,7 +604,7 @@ public class ArcadeManager {
 
     /**
      * displays all players sorted by age
-     * uses merge sort algorithm for sorting
+     * uses insertion sort algorithm for sorting
      */
     public void displayPlayersSortedByAge() {
         sortPlayersByAge();
