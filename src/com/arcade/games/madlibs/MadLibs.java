@@ -230,7 +230,7 @@ public class MadLibs extends Game {
      */
     private void displayGameIntro() {
         System.out.println(STYLE_TITLE + "╔══════════════════════════════════════════════╗");
-        System.out.println("║                  MAD LIBS                   ║");
+        System.out.println("║                  MAD LIBS                    ║");
         System.out.println("╚══════════════════════════════════════════════╝" + STYLE_END);
         System.out.println();
         System.out.println(STYLE_INFO + "Welcome to Mad Libs!" + STYLE_END);
